@@ -8,18 +8,16 @@ import numpy as np
 import cv2
 import torch
 import torch.nn as nn
-from Evaluation.evaluator import Eval_thread
-from Evaluation.dataloader import EvalDataset
 #from SOD import SOD
 from dataloader import get_loader
 from torch.autograd import Variable
 from torchvision import transforms
 import torch.nn.functional as F
 import transforms as trans
-from vst_token import ImageDepthNet
-from icon import ICON
+#from vst_token import ImageDepthNet
+#from icon import ICON
 from tqdm import tqdm
-from branch import branch
+#from branch import branch
 from multiscale_fusion_sod import SOD
 def get_pred_dir(model, data_root = '/mnt/disk2/dataset/'):
     batch_size = 1
@@ -99,38 +97,6 @@ def save_p(size,outputs,image_w,image_h,image_path,dataset_setname):
         output_si.save(os.path.join(save_test_path, filename + '.png'))
 
 
-def evaluate(save_test_path_root = 'Evaluation/sals/',data_root = '/mnt/disk2/dataset/',save_dir = '',method = 'conformer'):
-
-    pred_dir = save_test_path_root
-    output_dir = save_dir
-    gt_dir = data_root
-
-    method
-
-    threads = []
-    test_paths = [
-        'DUTS',
-        'ECSSD',
-        'HKU-IS',
-        'PASCAL-S',
-        'DUT-O'
-    ]
-    for dataset_setname in test_paths:
-
-        dataset_name = dataset_setname.split('/')[0]
-
-
-        pred_dir_all = str(osp.join(pred_dir, dataset_name))
-
-        if dataset_name == 'DUTS':
-            gt_dir_all = osp.join(osp.join(gt_dir, dataset_setname)) + '/DUTS-TE/DUTS-TE-Mask'
-        else:
-            gt_dir_all = osp.join(osp.join(gt_dir, dataset_setname)) + '/gt'
-        loader = EvalDataset(pred_dir_all, gt_dir_all)
-        thread = Eval_thread(loader, method, dataset_setname, output_dir, cuda=True)
-        threads.append(thread)
-    for thread in threads:
-        print(thread.run())
 
 parser = argparse.ArgumentParser()
 # ICON-V: VGG16, ICON-R: ResNet50, ICON-S: Swin, ICON-P: PVTv2, CycleMLP: B4
@@ -157,4 +123,3 @@ model.cuda()
 model.load_state_dict(torch.load('/home/yy/savepth/multiscale_fusion_sod_d2_int3_cpr120.pth'))
 model.eval()
 get_pred_dir(model)
-#evaluate(method='swin_s_conformer_concat_conv_200_c')

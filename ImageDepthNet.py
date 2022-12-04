@@ -4,8 +4,9 @@ from Models.t2t_vit import T2t_vit_t_14
 from Models.Transformer import Transformer
 from Models.Transformer import token_Transformer
 from Models.Decoder import Decoder
-from conformer_test import Conformer
-from upsample import *
+import numpy as np
+#from conformer_test import Conformer
+#from upsample import *
 def lhw(x):
     B,new_HW,C = x.shape
     x = x.transpose(1, 2).reshape(B, C, int(np.sqrt(new_HW)), int(np.sqrt(new_HW)))
