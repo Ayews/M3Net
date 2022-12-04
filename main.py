@@ -67,10 +67,10 @@ method = 'multiscale_fusion_sod_d2_int4d_norm_cpr'
 #step 1
 lr = 0.0001
 fit([100],model,lr,train_dl,method)
-torch.save(model.state_dict(), 'save/'+method+'100.pth')
+torch.save(model.state_dict(), '/home/yy/savepth/'+method+'100.pth')
 lr = 0.00002
 fit([20],model,lr,train_dl,method)
-torch.save(model.state_dict(), 'save/'+method+'120.pth')
+torch.save(model.state_dict(), '/home/yy/savepth/'+method+'120.pth')
 
 
 #writer.close()

@@ -111,7 +111,7 @@ def train_one_epoch(epoch,epochs,model,opt,train_dl):
         #epoch_lossp += lossp.cpu().data.item()
         epoch_loss41 += loss41.cpu().data.item()
         progress_bar.set_postfix(loss=f'{epoch_loss4/(i+1):.3f}')
-    return epoch_loss1/l, epoch_loss2/l, epoch_loss3/l, epoch_loss4/l, epoch_loss41/l
+    return epoch_loss4/l, epoch_loss41/l
         
 def fit(epochs, model, lr, train_dl, method):
     #progress_bar = tqdm(range(epochs))#,desc='Epoch[{:03d}/{:03d}]'.format(epochs, 40))
@@ -128,7 +128,7 @@ def fit(epochs, model, lr, train_dl, method):
             #val_loss = np.sum(np.multiply(losses, nums)) / np.sum(nums)
             #print(val_loss)
             with open(f, 'a') as fe:
-                fe.write(str(sum(epochs[:st])+epoch+1)+'\t{loss1:.3f}\t{loss2:.3f}\t{loss3:.3f}\t{loss4:.3f}\t{lossb:.3f}\n'.format(loss1 = loss[0],loss2 = loss[1],loss3 = loss[2],loss4 = loss[3],lossb = loss[4]))
+                fe.write(str(sum(epochs[:st])+epoch+1)+'\t{loss:.3f}\t{lossb:.3f}\n'.format(loss = loss[0],lossb = loss[1]))
                                # fe.write(str(sum(epochs[:st])+epoch+1)+'\t{loss1:.3f}\t{loss2:.3f}\t{loss3:.3f}\t{loss4:.3f}\t{lossp:.3f}\n'.format(loss1 = loss[0],loss2 = loss[1],loss3 = loss[2],loss4 = loss[3],lossp = loss[4]))
 
             #writer.add_scalar('Loss/train', loss, sum(epochs[:st])+epoch+1)
@@ -158,7 +158,7 @@ def get_opt(lr,model):
     return opt
 
 def eval():
-    os.system('python PySODEvalToolkit/eval.py --method-json PySODEvalToolkit/examples/config_method_json_during_train.json --dataset-json PySODEvalToolkit/examples/config_dataset_json_during_train.json --record-txt results/r0.txt')
+    os.system('python /home/yy/PySODEvalToolkit/eval.py --method-json /home/yy/PySODEvalToolkit/examples/config_method_json_during_train.json --dataset-json /home/yy/PySODEvalToolkit/examples/config_dataset_json_during_train.json --record-txt results/r0.txt')
 
 def get_opt_i(model):
     lr = 0.05

@@ -6,53 +6,7 @@ import transforms as trans
 from torchvision import transforms
 import random
 import os
-def get_path(x = 10000):
-    data_root = "/mnt/disk2/dataset/MSRA10K_Imgs_GT"
-    img_root = data_root + '/train/'
-    img_files = os.listdir(img_root)
-    images = []
-    labels = []
-    for img in img_files:
 
-        images.append(img_root + img[:-4]+'.jpg')
-        labels.append(img_root.replace('/train/', '/truth/') + img[:-4]+'.png')
-        #contours.append(img_root.replace('/DUTS-TR-Image/', '/DUTS-TR-Contour/') + img[:-4] + '.png')
-
-    return images[0:x], labels[0:x]#, contours
-
-'''
-dev = torch.device(
-    "cuda") if torch.cuda.is_available() else torch.device("cpu")
-    
-
-def preprocess(x, y):
-    return x.view(-1, 3, 224, 224).to(dev), y.view(-1,1,224,224).to(dev)
-
-
-
-def get_data(img_paths,truth_paths):
-    x_train = []
-    for path in img_paths:
-        img = cv2.imread(path)
-        img = cv2.resize(img,(224,224))
-        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-        img = img*1.0/255
-        x_train.append(img)
-    y_train = []
-    for path in truth_paths:
-        img = cv2.imread(path,0)
-        img = cv2.resize(img,(224,224))
-        img = img*1.0/255
-        y_train.append(img)
-    x_train = torch.from_numpy(np.asarray(x_train).astype(np.float32).transpose(0,3,1,2))
-    y_train = torch.from_numpy(np.asarray(y_train).astype(np.float32))
-    #print(x_train.shape,y_train.shape)
-    train_ds = TensorDataset(x_train, y_train)
-    #valid_ds = TensorDataset(x_train[9000:10000], y_train[9000,10000])
-    train_dl = DataLoader(train_ds, batch_size=bs, shuffle=True)
-    train_dl = WrappedDataLoader(train_dl, preprocess)
-    return train_dl
-'''
 def load_list(dataset_name, data_root):
 
     images = []
@@ -76,12 +30,12 @@ def load_test_list(test_path, data_root):
     images = []
 
     if 'DUTS' in test_path:
-        img_root = data_root + test_path + '\\DUTS-TE-Image\\'
+        img_root = data_root + test_path + '/DUTS-TE-Image/'
     else:
-        img_root = data_root + test_path + '\\imgs\\'
+        img_root = data_root + test_path + '/imgs/'
 
     img_files = os.listdir(img_root)
-    if '\\HKU-IS\\' in img_root:
+    if '/HKU-IS/' in img_root:
         ext = '.png'
     else:
         ext = '.jpg'

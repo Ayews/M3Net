@@ -7,7 +7,7 @@ class MultiscaleInteractionBlock(nn.Module):
         super(MultiscaleInteractionBlock, self).__init__()
         self.norm1 = nn.LayerNorm(dim1)
         self.norm2 = nn.LayerNorm(dim2)
-        self.ia1 = MutualAttention(dim1=dim1,dim2=dim2,dim=embed_dim,num_heads=6)
+        self.ia1 = MutualSelfBlock(dim1=dim1,dim2=dim2,dim=embed_dim,num_heads=6)
         self.dim3 = dim3
         if self.dim3:
             self.norm3 = nn.LayerNorm(dim3)
