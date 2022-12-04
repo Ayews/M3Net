@@ -135,7 +135,7 @@ def fit(epochs, model, lr, train_dl, method):
 
             #progress_bar.set_postfix(loss=f'{val_loss:.3f}')
             if epoch % 20 == 19:
-                torch.save(model.state_dict(),"~/savepth/tmp/"+str(sum(epochs[:st])+epoch+1))
+                torch.save(model.state_dict(),"/home/yy/savepth/tmp/"+str(sum(epochs[:st])+epoch+1))
                 get_pred_dir(model)
                 thread = threading.Thread(target = eval)
                 thread.start()
