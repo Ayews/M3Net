@@ -78,10 +78,10 @@ torch.save(model.state_dict(), '/home/yy/savepth/'+method+'120.pth')
 
 model.load_state_dict(torch.load('/home/yy/savepth/multiscale_fusion_sod_d2_int5_cpr100.pth'))
 lr = 0.0001
-fit([30],model,lr,train_dl,method)
+fit([30],model,lr,train_dl_b,method)
 torch.save(model.state_dict(), '/home/yy/savepth/'+method+'130.pth')
 lr = 0.00002
-fit([20],model,lr,train_dl,method)
+fit([20],model,lr,train_dl_b,method)
 torch.save(model.state_dict(), '/home/yy/savepth/'+method+'150.pth')
 #writer.close()
 '''
