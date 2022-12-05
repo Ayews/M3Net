@@ -19,7 +19,7 @@ import transforms as trans
 from tqdm import tqdm
 #from branch import branch
 from multiscale_fusion_sod import SOD
-def get_pred_dir(model, data_root = '/mnt/disk2/dataset/'):
+def get_pred_dir(model, data_root = '/home/yy/datasets/'):
     batch_size = 1
     test_paths = [
         'DUT-O',
@@ -91,7 +91,7 @@ def save_p(size,outputs,image_w,image_h,image_path,dataset_setname):
         filename = image_path[ii].split('/')[-1].split('.')[0]
 
         # save saliency maps
-        save_test_path = 'Evaluation/sals/'+dataset_setname+'/'
+        save_test_path = '/home/yy/preds/'+dataset_setname+'/'
         if not os.path.exists(save_test_path):
             os.makedirs(save_test_path)
         output_si.save(os.path.join(save_test_path, filename + '.png'))
@@ -120,6 +120,6 @@ args = parser.parse_args(args=[])
 #model = branch()
 model = SOD(embed_dim=384,dim=96,img_size=224)
 model.cuda()
-model.load_state_dict(torch.load('/home/yy/savepth/multiscale_fusion_sod_d2_int3_cpr120.pth'))
+model.load_state_dict(torch.load('/home/yy/savepth/multiscale_fusion_sod_d2_int4d_norm_cpr100.pth'))
 model.eval()
 get_pred_dir(model)

@@ -21,11 +21,11 @@ class MultiscaleInteractionBlock(nn.Module):
         self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
 
     def forward(self,x1,x2,x3=None):
-        #x1 = self.norm1(x1)
-        #x2 = self.norm2(x2)
+        x1 = self.norm1(x1)
+        x2 = self.norm2(x2)
         x11 = self.ia1(x1,x2)
         if x3 != None:
-            #x3 = self.norm3(x3)
+            x3 = self.norm3(x3)
             x12 = self.ia2(x1,x3)
         x1 = x1+x11
         if self.dim3:
