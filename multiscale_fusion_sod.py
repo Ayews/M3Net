@@ -13,9 +13,9 @@ class SOD(nn.Module):
                                            depths=[2,2,18,2],
                                            num_heads=[3,6,12,24],
                                            window_size=7)
-        self.interact1 = MultiscaleInteractionBlock(dim1=384,dim2=768,embed_dim=embed_dim)
-        self.interact2 = MultiscaleInteractionBlock(dim1=192,dim2=384,dim3=768,embed_dim=embed_dim)
-        self.interact3 = MultiscaleInteractionBlock(dim1=96,dim2=192,dim3=384,embed_dim=embed_dim)
+        self.interact1 = MultiscaleInteractionBlock(dim=384,dim1=768,embed_dim=embed_dim)
+        self.interact2 = MultiscaleInteractionBlock(dim=192,dim1=384,dim2=768,embed_dim=embed_dim)
+        self.interact3 = MultiscaleInteractionBlock(dim=96,dim1=192,dim2=384,embed_dim=embed_dim)
         
         self.decoder = decoder(embed_dim=embed_dim,dim=dim,img_size=img_size)
 

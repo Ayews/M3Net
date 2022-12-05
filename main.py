@@ -53,15 +53,19 @@ model.encoder.load_state_dict(torch.load('/home/yy/pretrained_model/swin_small_p
 #model.load_state_dict(torch.load('save/multiscale_fusion_sod_d2_int2_cpr100.pth'))
 model.train()
 train_dataset = get_loader('DUTS/DUTS-TR', "/home/yy/datasets/", 224, mode='train')
+train_dataset_b = get_loader('DUTS_MSRA10K', "/home/yy/datasets/", 224, mode='train')
 train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=8, shuffle = True, 
                                                pin_memory=True,num_workers = 4
                                                )
+train_dl_b = torch.utils.data.DataLoader(train_dataset_b, batch_size=8, shuffle = True, 
+                                               pin_memory=True,num_workers = 4
+                                               )                                            
 #train_dataset2 = get_loader('MSRA10K', "/mnt/disk2/dataset/", 224, mode='train')
 #train_dl2 = torch.utils.data.DataLoader(train_dataset2, batch_size=10, shuffle = True, 
 #                                               pin_memory=True,
 #                                               )
 
-method = 'multiscale_fusion_sod_d2_int4d_norm_cpr'
+method = 'multiscale_fusion_sod_d2_int5_cpr'
 #method = 'icon'
 #f = 'lossA2.txt'
 #step 1
@@ -72,7 +76,13 @@ lr = 0.00002
 fit([20],model,lr,train_dl,method)
 torch.save(model.state_dict(), '/home/yy/savepth/'+method+'120.pth')
 
-
+model.load_state_dict(torch.load('/home/yy/savepth/multiscale_fusion_sod_d2_int5_cpr100.pth'))
+lr = 0.0001
+fit([30],model,lr,train_dl,method)
+torch.save(model.state_dict(), '/home/yy/savepth/'+method+'130.pth')
+lr = 0.00002
+fit([20],model,lr,train_dl,method)
+torch.save(model.state_dict(), '/home/yy/savepth/'+method+'150.pth')
 #writer.close()
 '''
 #step 2

@@ -24,16 +24,16 @@ train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=1, shuffle = Fa
                                                pin_memory=True,num_workers = 1)
 path = ''
 gt = None
-img_size = 14
+img_size = 56
 for i,batch in enumerate(train_dl):
     l = []
 
     images, image_w, image_h, image_path = batch
     path = image_path
-    a1,a11,a12,a2,a21,a22,a3,a31 = model(images)
-    l.append(a3.clone().detach().cpu().numpy())
-    l.append(a31.clone().detach().cpu().numpy())
-    #l.append(a12.clone().detach().cpu().numpy())
+    x1,x1_,x2,x2_,x3,x3_ = model(images)
+    l.append(x1.clone().detach().cpu().numpy())
+    l.append(x1_.clone().detach().cpu().numpy())
+    #l.append(a22.clone().detach().cpu().numpy())
 
     if(i == 6):
         break
@@ -99,7 +99,7 @@ cv2.imwrite('cam1.png',cv2.cvtColor(cam*255, cv2.COLOR_BGR2RGB))
 
 ll=l[1]-l[0]
 print(ll.shape)
-x1 = np.sum(l[2],axis=2)
+x1 = np.sum(ll,axis=2)
 x1 = x1.reshape(1,img_size,img_size).squeeze(0)
 #print(x1)
 
