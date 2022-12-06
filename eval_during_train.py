@@ -40,7 +40,7 @@ def get_pred_dir(model, data_root = '/home/yy/datasets/'):
 
             outputs_saliency = model(images)
 
-            mask_1_1 = outputs_saliency[0][3]
+            mask_1_1 = outputs_saliency[3]
 
             image_w, image_h = int(image_w[0]), int(image_h[0])
 
