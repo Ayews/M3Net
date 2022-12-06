@@ -43,6 +43,29 @@ def wbce(pred,mask):
     wbce = (weit * wbce).sum(dim=(2, 3)) / weit.sum(dim=(2, 3))
     return wbce.mean()
 
+def flat(mask,mask2,h1,h2):
+    batch_size = mask.shape[0]
+
+    mask = F.interpolate(mask,size=(int(h1),int(h1)), mode='bilinear')
+    x = mask.view(batch_size, 1, -1).permute(0, 2, 1) 
+    mask2 = F.interpolate(mask2,size=(int(h2),int(h2)), mode='bilinear')
+    x2 = mask2.view(batch_size, 1, -1).permute(0, 2, 1) 
+    
+    # print(x.shape)  b 28*28 1
+    g = x @ x2.transpose(-2,-1) # b 28*28 28*28
+    g = g.unsqueeze(1) # b 1 28*28 28*28
+    return g
+
+def att_loss(pred,mask1,mask2,h1,h2):
+    g = flat(mask1,mask2,h1,h2)
+    #np4 = torch.sigmoid(p4.detach())
+    #np5 = torch.sigmoid(p5.detach())
+    #p = flat(np4,np5,h1,h2)
+    #w  = torch.abs(g-p)
+    #w = (w)*0.5+1
+    attbce=F.binary_cross_entropy_with_logits(pred, g,reduction='mean')
+    return attbce
+
 def train_one_epoch(epoch,epochs,model,opt,train_dl):
     epoch_total_loss = 0
     epoch_loss1 = 0
@@ -76,7 +99,9 @@ def train_one_epoch(epoch,epochs,model,opt,train_dl):
         label_14, label_28, label_56, label_112 = Variable(label_14.cuda()), Variable(label_28.cuda()),\
                                                     Variable(label_56.cuda()), Variable(label_112.cuda())
 
-        out2, out3, out4, out5= model(images)            
+        fea,att = model(images)
+        out2, out3, out4, out5 = fea     
+        att1,att2 = att
         
         loss1  = F.binary_cross_entropy_with_logits(out2, label_14) + iou_loss(out2, label_14)
         loss2  = F.binary_cross_entropy_with_logits(out3, label_28) + iou_loss(out3, label_28)
@@ -87,8 +112,10 @@ def train_one_epoch(epoch,epochs,model,opt,train_dl):
 
         loss = loss1 + loss2 +loss3 + loss4
 
+        lossa1 = att_loss(att1,label_56,label_28,56,28)
+        lossa2 = att_loss(att2,label_56,label_14,56,14)
 
-
+        loss = loss + lossa1 + lossa2
         #img_total_loss = loss_weights[0] * loss1 + loss_weights[1] * loss3 + loss_weights[2] * loss4 + loss_weights[3] * loss5\
                        # +loss_weights[0] * loss1c + loss_weights[1] * loss3c + loss_weights[2] * loss4c + loss_weights[3] * loss5c
         #contour_total_loss = loss_weights[0] * c_loss1 + loss_weights[1] * c_loss3 + loss_weights[2] * c_loss4 + loss_weights[3] * c_loss5\

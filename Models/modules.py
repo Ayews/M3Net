@@ -108,7 +108,7 @@ class MutualAttention(nn.Module):
         #depth_fea = self.depth_proj(depth_fea)
         #depth_fea = self.proj_drop(depth_fea)
 
-        return rgb_fea#, depth_fea
+        return rgb_fea,rgb_attn#, depth_fea
 
 
 class Block(nn.Module):

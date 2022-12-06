@@ -18,21 +18,22 @@ def iou_loss(pred, mask):
 model = SOD()
 #model.cuda()
 model.eval()
-model.load_state_dict(torch.load('/home/yy/savepth/multiscale_fusion_sod_d2_int4d_cpr120.pth'))
+model.load_state_dict(torch.load('/home/yy/savepth/multiscale_fusion_sod_d2_int5_cpr120.pth'))
 train_dataset = get_loader('DUTS/DUTS-TE', "/home/yy/datasets/", 224, mode='test')
 train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=1, shuffle = False, 
                                                pin_memory=True,num_workers = 1)
 path = ''
 gt = None
-img_size = 56
+img_size = 28
 for i,batch in enumerate(train_dl):
     l = []
 
     images, image_w, image_h, image_path = batch
     path = image_path
-    x1,x1_,x2,x2_,x3,x3_ = model(images)
-    l.append(x1.clone().detach().cpu().numpy())
-    l.append(x1_.clone().detach().cpu().numpy())
+    x1,x11,x1_,x2,x21,x2_,x3,x3_ = model(images)
+    l.append(x2.clone().detach().cpu().numpy())
+    l.append(x21.clone().detach().cpu().numpy())
+    l.append(x2_.clone().detach().cpu().numpy())
     #l.append(a22.clone().detach().cpu().numpy())
 
     if(i == 6):
@@ -69,6 +70,7 @@ plt.imshow(cam)
 plt.savefig('cam.png')
 cv2.imwrite('cam.png',cv2.cvtColor(cam*255, cv2.COLOR_BGR2RGB))
 
+ll=l[1]-l[0]
 x1 = np.sum(l[1],axis=2)
 x1 = x1.reshape(1,img_size,img_size).squeeze(0)
 #print(x1)
@@ -97,9 +99,9 @@ plt.imshow(cam)
 plt.savefig('cam1.png')
 cv2.imwrite('cam1.png',cv2.cvtColor(cam*255, cv2.COLOR_BGR2RGB))
 
-ll=l[1]-l[0]
+ll=l[2]-l[1]
 print(ll.shape)
-x1 = np.sum(ll,axis=2)
+x1 = np.sum(l[2],axis=2)
 x1 = x1.reshape(1,img_size,img_size).squeeze(0)
 #print(x1)
 
