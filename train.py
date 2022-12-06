@@ -99,9 +99,8 @@ def train_one_epoch(epoch,epochs,model,opt,train_dl):
         label_14, label_28, label_56, label_112 = Variable(label_14.cuda()), Variable(label_28.cuda()),\
                                                     Variable(label_56.cuda()), Variable(label_112.cuda())
 
-        fea,att = model(images)
-        out2, out3, out4, out5 = fea     
-        att1,att2 = att
+        out2, out3, out4, out5 = model(images)
+        #att1,att2 = att
         
         loss1  = F.binary_cross_entropy_with_logits(out2, label_14) + iou_loss(out2, label_14)
         loss2  = F.binary_cross_entropy_with_logits(out3, label_28) + iou_loss(out3, label_28)
@@ -112,10 +111,6 @@ def train_one_epoch(epoch,epochs,model,opt,train_dl):
 
         loss = loss1 + loss2 +loss3 + loss4
 
-        lossa1 = att_loss(att1,label_56,label_28,56,28)
-        lossa2 = att_loss(att2,label_56,label_14,56,14)
-
-        loss = loss + lossa1 + lossa2
         #img_total_loss = loss_weights[0] * loss1 + loss_weights[1] * loss3 + loss_weights[2] * loss4 + loss_weights[3] * loss5\
                        # +loss_weights[0] * loss1c + loss_weights[1] * loss3c + loss_weights[2] * loss4c + loss_weights[3] * loss5c
         #contour_total_loss = loss_weights[0] * c_loss1 + loss_weights[1] * c_loss3 + loss_weights[2] * c_loss4 + loss_weights[3] * c_loss5\

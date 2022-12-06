@@ -108,7 +108,7 @@ class MutualAttention(nn.Module):
         #depth_fea = self.depth_proj(depth_fea)
         #depth_fea = self.proj_drop(depth_fea)
 
-        return rgb_fea,rgb_attn#, depth_fea
+        return rgb_fea#, depth_fea
 
 
 class Block(nn.Module):
@@ -485,3 +485,19 @@ class mixattentionblock(nn.Module):
         x = x + x1 + x2
         x = x + self.drop_path(self.mlp2(self.norm2(x)))
         return x
+
+class SEBlock(nn.Module):
+    def __init__(self, dim, r):
+        super(SEBlock, self).__init__()
+        self.se = nn.Sequential(
+            nn.Linear(dim,dim//r),
+            nn.GELU(),
+            nn.Linear(dim//r,dim)
+        )
+    def forward(self, fea):
+        _,shape,_ = fea.shape
+        z = fea.transpose(1,2)
+        z = F.avg_pool1d(z,shape).transpose(1,2)
+        s = self.se(z)
+        s = torch.sigmoid(s)
+        return s*fea

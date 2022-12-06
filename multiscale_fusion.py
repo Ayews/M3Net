@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from timm.models.layers import DropPath
-from Models.modules import WindowAttentionBlock,Block,mixattentionblock
+from Models.modules import WindowAttentionBlock,Block,mixattentionblock,SEBlock
 class decoder(nn.Module):
     def __init__(self,embed_dim,dim,img_size):
         super(decoder, self).__init__()
@@ -47,6 +47,7 @@ class multiscale_fusion(nn.Module):
         self.project = nn.Linear(in_dim, in_dim * kernel_size[0] * kernel_size[1])
         self.upsample = nn.Fold(output_size=img_size, kernel_size=kernel_size, stride=stride, padding=padding)
         if self.fuse:
+            self.se = SEBlock(in_dim+f_dim,16)
             self.mlp1 = nn.Sequential(
                 nn.Linear(in_dim+f_dim, f_dim),
                 nn.GELU(),
@@ -60,6 +61,7 @@ class multiscale_fusion(nn.Module):
         x1 = x1.view(B, C, -1).transpose(1, 2)#.contiguous()
         if self.fuse:
             x = torch.cat([x1,x2],dim=2)
+            x = self.se(x)
             x = self.mlp1(x)
         else:
             x = x1

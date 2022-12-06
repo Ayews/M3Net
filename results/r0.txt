@@ -48,3 +48,33 @@
 
  ========>> Dataset: ECSSD <<======== 
 [swin_s_conformer_concat_conv_finetune_t] mae: 0.027  maxf: 0.952  avgf: 0.938  adpf: 0.927  maxe: 0.969  avge: 0.961  adpe: 0.956  sm: 0.939  wfm: 0.932  
+
+ ========>> Date: 2022-12-06 19:00:44.446856 <<======== 
+
+ ========>> Dataset: ECSSD <<======== 
+[swin_s_conformer_concat_conv_finetune_t] mae: 0.028  maxf: 0.947  avgf: 0.932  adpf: 0.934  maxe: 0.967  avge: 0.959  adpe: 0.963  sm: 0.936  wfm: 0.923  
+
+ ========>> Date: 2022-12-06 19:56:14.995681 <<======== 
+
+ ========>> Dataset: ECSSD <<======== 
+[swin_s_conformer_concat_conv_finetune_t] mae: 0.027  maxf: 0.948  avgf: 0.931  adpf: 0.931  maxe: 0.967  avge: 0.96   adpe: 0.962  sm: 0.937  wfm: 0.926  
+
+ ========>> Date: 2022-12-06 20:51:47.654164 <<======== 
+
+ ========>> Dataset: ECSSD <<======== 
+[swin_s_conformer_concat_conv_finetune_t] mae: 0.027  maxf: 0.949  avgf: 0.936  adpf: 0.938  maxe: 0.966  avge: 0.96   adpe: 0.964  sm: 0.937  wfm: 0.929  
+
+ ========>> Date: 2022-12-06 21:47:27.280172 <<======== 
+
+ ========>> Dataset: ECSSD <<======== 
+[swin_s_conformer_concat_conv_finetune_t] mae: 0.026  maxf: 0.95   avgf: 0.935  adpf: 0.935  maxe: 0.967  avge: 0.96   adpe: 0.964  sm: 0.938  wfm: 0.928  
+
+ ========>> Date: 2022-12-06 22:43:03.375185 <<======== 
+
+ ========>> Dataset: ECSSD <<======== 
+[swin_s_conformer_concat_conv_finetune_t] mae: 0.026  maxf: 0.95   avgf: 0.933  adpf: 0.933  maxe: 0.969  avge: 0.962  adpe: 0.965  sm: 0.939  wfm: 0.928  
+
+ ========>> Date: 2022-12-06 23:38:35.373794 <<======== 
+
+ ========>> Dataset: ECSSD <<======== 
+[swin_s_conformer_concat_conv_finetune_t] mae: 0.025  maxf: 0.952  avgf: 0.937  adpf: 0.937  maxe: 0.969  avge: 0.962  adpe: 0.965  sm: 0.94   wfm: 0.931  

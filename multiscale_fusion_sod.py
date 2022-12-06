@@ -26,9 +26,9 @@ class SOD(nn.Module):
         B,_,_ = x1.shape
         x3_ = self.interact1(x3,x4)
         x2_ = self.interact2(x2,x3_,x4)
-        x1_,att1,att2 = self.interact3(x1,x2_,x3_)
+        x1_ = self.interact3(x1,x2_,x3_)
         x = self.decoder([x3_,x2_,x1_])
-        return x,[att1,att2]
+        return x
 
 if __name__ == '__main__':
     model = SOD(embed_dim=384,dim=96,img_size=224)

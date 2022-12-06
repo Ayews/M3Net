@@ -18,25 +18,25 @@ def iou_loss(pred, mask):
 model = SOD()
 #model.cuda()
 model.eval()
-model.load_state_dict(torch.load('/home/yy/savepth/multiscale_fusion_sod_d2_int5_cpr120.pth'))
+model.load_state_dict(torch.load('/home/yy/savepth/multiscale_fusion_sod_d2_int6_cpr60.pth'))
 train_dataset = get_loader('DUTS/DUTS-TE', "/home/yy/datasets/", 224, mode='test')
 train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=1, shuffle = False, 
                                                pin_memory=True,num_workers = 1)
 path = ''
 gt = None
-img_size = 28
+img_size = 56
 for i,batch in enumerate(train_dl):
     l = []
 
     images, image_w, image_h, image_path = batch
     path = image_path
-    x1,x11,x1_,x2,x21,x2_,x3,x3_ = model(images)
-    l.append(x2.clone().detach().cpu().numpy())
-    l.append(x21.clone().detach().cpu().numpy())
-    l.append(x2_.clone().detach().cpu().numpy())
+    x1,x11,x1_,x2,x2_,x3,x3_ = model(images)
+    l.append(x1.clone().detach().cpu().numpy())
+    l.append(x11.clone().detach().cpu().numpy())
+    l.append(x1_.clone().detach().cpu().numpy())
     #l.append(a22.clone().detach().cpu().numpy())
 
-    if(i == 6):
+    if(i == 12):
         break
 
 print(path)
