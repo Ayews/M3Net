@@ -205,3 +205,49 @@ train_dl_b 130
 
  ========>> Dataset: SOD <<======== 
 [swin_s_conformer_concat_conv_finetune_t] mae: 0.093  maxf: 0.839  avgf: 0.83   adpf: 0.823  maxe: 0.863  avge: 0.844  adpe: 0.84   sm: 0.811  wfm: 0.784  
+
+ ========>> Date: 2022-12-07 09:10:44.562195 <<======== 
+
+ ========>> Dataset: DUT-O <<======== 
+[swin_s_conformer_concat_conv_finetune_t] mae: 0.049  maxf: 0.806  avgf: 0.792  adpf: 0.792  maxe: 0.886  avge: 0.881  adpe: 0.888  sm: 0.857  wfm: 0.782  
+
+ ========>> Dataset: DUTS-TE <<======== 
+[swin_s_conformer_concat_conv_finetune_t] mae: 0.03   maxf: 0.893  avgf: 0.876  adpf: 0.865  maxe: 0.944  avge: 0.938  adpe: 0.94   sm: 0.907  wfm: 0.868  
+
+ ========>> Dataset: DUTS-TR <<======== 
+[swin_s_conformer_concat_conv_finetune_t] mae: 0.008  maxf: 0.989  avgf: 0.979  adpf: 0.981  maxe: 0.995  avge: 0.989  adpe: 0.991  sm: 0.978  wfm: 0.982  
+
+ ========>> Dataset: ECSSD <<======== 
+[swin_s_conformer_concat_conv_finetune_t] mae: 0.024  maxf: 0.953  avgf: 0.939  adpf: 0.939  maxe: 0.971  avge: 0.965  adpe: 0.967  sm: 0.941  wfm: 0.934  
+
+ ========>> Dataset: HKU-IS <<======== 
+[swin_s_conformer_concat_conv_finetune_t] mae: 0.024  maxf: 0.939  avgf: 0.921  adpf: 0.919  maxe: 0.967  avge: 0.96   adpe: 0.965  sm: 0.93   wfm: 0.915  
+
+ ========>> Dataset: PASCAL-S <<======== 
+[swin_s_conformer_concat_conv_finetune_t] mae: 0.052  maxf: 0.869  avgf: 0.85   adpf: 0.849  maxe: 0.919  avge: 0.913  adpe: 0.916  sm: 0.876  wfm: 0.838  
+
+ ========>> Dataset: SOD <<======== 
+[swin_s_conformer_concat_conv_finetune_t] mae: 0.083  maxf: 0.84   avgf: 0.832  adpf: 0.84   maxe: 0.865  avge: 0.847  adpe: 0.851  sm: 0.818  wfm: 0.787  
+
+ ========>> Date: 2022-12-07 09:32:55.928405 <<======== 
+
+ ========>> Dataset: DUT-O <<======== 
+[swin_s_conformer_concat_conv_finetune_t] mae: 0.051  maxf: 0.805  avgf: 0.792  adpf: 0.79   maxe: 0.885  avge: 0.879  adpe: 0.887  sm: 0.855  wfm: 0.781  
+
+ ========>> Dataset: DUTS-TE <<======== 
+[swin_s_conformer_concat_conv_finetune_t] mae: 0.03   maxf: 0.894  avgf: 0.876  adpf: 0.863  maxe: 0.945  avge: 0.938  adpe: 0.938  sm: 0.908  wfm: 0.868  
+
+ ========>> Dataset: DUTS-TR <<======== 
+[swin_s_conformer_concat_conv_finetune_t] mae: 0.008  maxf: 0.99   avgf: 0.979  adpf: 0.972  maxe: 0.995  avge: 0.988  adpe: 0.984  sm: 0.979  wfm: 0.982  
+
+ ========>> Dataset: ECSSD <<======== 
+[swin_s_conformer_concat_conv_finetune_t] mae: 0.025  maxf: 0.952  avgf: 0.937  adpf: 0.936  maxe: 0.97   avge: 0.963  adpe: 0.965  sm: 0.941  wfm: 0.933  
+
+ ========>> Dataset: HKU-IS <<======== 
+[swin_s_conformer_concat_conv_finetune_t] mae: 0.024  maxf: 0.941  avgf: 0.923  adpf: 0.921  maxe: 0.968  avge: 0.961  adpe: 0.966  sm: 0.932  wfm: 0.918  
+
+ ========>> Dataset: PASCAL-S <<======== 
+[swin_s_conformer_concat_conv_finetune_t] mae: 0.052  maxf: 0.873  avgf: 0.854  adpf: 0.851  maxe: 0.925  avge: 0.917  adpe: 0.916  sm: 0.88   wfm: 0.844  
+
+ ========>> Dataset: SOD <<======== 
+[swin_s_conformer_concat_conv_finetune_t] mae: 0.082  maxf: 0.844  avgf: 0.835  adpf: 0.834  maxe: 0.87   avge: 0.847  adpe: 0.846  sm: 0.82   wfm: 0.79   

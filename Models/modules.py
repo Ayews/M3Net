@@ -20,7 +20,8 @@ class Mlp(nn.Module):
         x = self.fc2(x)
         x = self.drop(x)
         return x
-
+    def flops(self,N):
+        return N*(self.in_features+self.out_features)*self.hidden_features
 
 
 class Attention(nn.Module):
@@ -51,17 +52,26 @@ class Attention(nn.Module):
         x = self.proj_drop(x)
         return x
     
-    def flops(self):
-        flops = self.dim * 3 * self.dim
+    def flops(self,N):
+        flops = 0
+        #q
+        flops += N*self.dim*self.dim*3
+        #qk
+        flops += self.num_heads*N*self.dim//self.num_heads*N
+        #att v
+        flops += self.num_heads*N*self.dim//self.num_heads*N
+        #proj
+        flops += N*self.dim*self.dim
         return flops
 
-
-class MutualAttention(nn.Module):
+class CrossAttention(nn.Module):
     def __init__(self, dim1,dim2, dim, num_heads=8, qkv_bias=False, qk_scale=None, attn_drop=0., proj_drop=0.):
         super().__init__()
         self.num_heads = num_heads
         head_dim = dim // num_heads
         self.dim = dim
+        self.dim1 = dim1
+        self.dim2 = dim2
         self.scale = qk_scale or head_dim ** -0.5
 
         self.rgb_q = nn.Linear(dim1, dim, bias=qkv_bias)
@@ -109,7 +119,19 @@ class MutualAttention(nn.Module):
         #depth_fea = self.proj_drop(depth_fea)
 
         return rgb_fea#, depth_fea
-
+    def flops(self,N1,N2):
+        flops = 0
+        #q
+        flops += N1*self.dim1*self.dim
+        #kv
+        flops += N2*self.dim2*self.dim*2
+        #qk
+        flops += self.num_heads*N1*self.dim//self.num_heads*N2
+        #att v
+        flops += self.num_heads*N1*self.dim//self.num_heads*N2
+        #proj
+        flops += N1*self.dim*self.dim1
+        return flops
 
 class Block(nn.Module):
 
@@ -117,6 +139,7 @@ class Block(nn.Module):
                  drop_path=0., act_layer=nn.GELU, norm_layer=nn.LayerNorm):
         super().__init__()
         self.norm1 = norm_layer(dim)
+        self.dim = dim
         self.attn = Attention(
             dim, num_heads=num_heads, qkv_bias=qkv_bias, qk_scale=qk_scale, attn_drop=attn_drop, proj_drop=drop)
         self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
@@ -128,10 +151,15 @@ class Block(nn.Module):
         x = self.drop_path(self.attn(self.norm1(x)))
         #x = x + self.drop_path(self.mlp(self.norm2(x)))
         return x
-    def flops(self):
-        flops = self.attn.flops()
+    def flops(self,N):
+        flops = 0
+        #att
+        flops += self.attn.flops(N)
+        #norm
+        flops += self.dim*N
         return flops
-
+    
+'''
 class MutualSelfBlock(nn.Module):
 
     def __init__(self, dim1,dim2, dim, num_heads, mlp_ratio=4., qkv_bias=False, qk_scale=None, drop=0., attn_drop=0.,
@@ -185,7 +213,7 @@ class MutualSelfBlock(nn.Module):
         #depth_fea = depth_fea + self.drop_path(self.mlp_depth_sa(self.norm2_depth_sa(depth_fea)))
 
         return rgb_fea#, depth_fea
-
+'''
 
 def window_partition(x, window_size):
     """
@@ -450,10 +478,12 @@ class WindowAttentionBlock(nn.Module):
         return flops
 
 class mixattentionblock(nn.Module):
-    def __init__(self,dim,img_size,num_heads=1,mlp_ratio=4,drop_path = 0.):
+    def __init__(self,dim,img_size,num_heads=1,mlp_ratio=3,drop_path = 0.):
         super(mixattentionblock, self).__init__()
 
         self.img_size = img_size
+        self.dim = dim
+        self.mlp_ratio = mlp_ratio
         #self.norm1 = nn.LayerNorm(dim)
         #self.mlp1 = nn.Sequential(
         #    nn.Linear(dim, dim),
@@ -471,11 +501,11 @@ class mixattentionblock(nn.Module):
         #    nn.GELU(),
         #    nn.Linear(dim, dim),
         #)
-        self.norm2 = nn.LayerNorm(dim)
-        self.mlp2 = nn.Sequential(
-            nn.Linear(dim, dim),
+        self.norm = nn.LayerNorm(dim)
+        self.mlp = nn.Sequential(
+            nn.Linear(dim, dim*mlp_ratio),
             nn.GELU(),
-            nn.Linear(dim, dim),
+            nn.Linear(dim*mlp_ratio, dim),
         )
         self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
 
@@ -483,8 +513,16 @@ class mixattentionblock(nn.Module):
         x1 = self.windowatt(x)
         x2 = self.globalatt(x)
         x = x + x1 + x2
-        x = x + self.drop_path(self.mlp2(self.norm2(x)))
+        x = x + self.drop_path(self.mlp(self.norm(x)))
         return x
+    def flops(self):
+        N = self.img_size[0]*self.img_size[1]
+        flops = 0
+        flops += self.windowatt.flops()
+        flops += self.globalatt.flops(N)
+        flops += self.dim*N
+        flops += 2*N*self.dim*self.dim*self.mlp_ratio
+        return flops
 
 class SEBlock(nn.Module):
     def __init__(self, dim, r):

@@ -1,44 +1,51 @@
 import torch
 import torch.nn as nn
 from timm.models.layers import DropPath
-from Models.modules import MutualSelfBlock,MutualAttention
+from Models.modules import CrossAttention
 class MultiscaleInteractionBlock(nn.Module):
-    def __init__(self,dim,dim1,dim2=None,embed_dim = 384,drop_path = 0.):
+    def __init__(self,dim,dim1,dim2=None,embed_dim = 384,num_heads = 6,mlp_ratio = 3., qkv_bias = False, qk_scale = None,drop = 0.,attn_drop = 0.,drop_path = 0.,act_layer=nn.GELU, norm_layer=nn.LayerNorm):
         super(MultiscaleInteractionBlock, self).__init__()
-        self.ia1 = MutualSelfBlock(dim1=dim,dim2=dim1,dim=embed_dim,num_heads=6)
+        self.interact1 = CrossAttention(dim1 = dim,dim2 = dim1,dim = embed_dim,num_heads=num_heads,qkv_bias=qkv_bias,qk_scale=qk_scale,attn_drop=attn_drop,proj_drop=drop)
+        self.norm0 = norm_layer(dim)
+        self.norm1 = norm_layer(dim1)
+        self.dim = dim
         self.dim2 = dim2
-        self.norm = nn.LayerNorm(dim)
-        self.mlp = nn.Sequential(
-            nn.Linear(dim, dim),
-            nn.GELU(),
-            nn.Linear(dim, dim),
-        )
+        self.mlp_ratio = mlp_ratio
         if self.dim2:
-            self.ia2 = MutualSelfBlock(dim1=dim,dim2=dim2,dim=embed_dim,num_heads=6)
+            self.interact2 = CrossAttention(dim1 = dim,dim2 = dim2,dim = embed_dim,num_heads=num_heads,qkv_bias=qkv_bias,qk_scale=qk_scale,attn_drop=attn_drop,proj_drop=drop)
+            self.norm2 = norm_layer(dim2)
 
         self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
 
-    def forward(self,x1,x2,x3=None):
-        #x1 = self.norm1(x1)
-        #x2 = self.norm2(x2)
-        x11 = self.ia1(x1,x2)
-        if x3 != None:
-            #x3 = self.norm3(x3)
-            x12 = self.ia2(x1,x3)
-        x1 = x1+x11
+        self.norm = nn.LayerNorm(dim)
+        self.mlp = nn.Sequential(
+            nn.Linear(dim, dim*mlp_ratio),
+            act_layer(),
+            nn.Linear(dim*mlp_ratio, dim),
+        )
+
+    def forward(self,fea,fea_1,fea_2=None):
+        fea = self.norm0(fea)
+        fea_1 = self.norm1(fea_1)
+        fea_1 = self.interact1(fea,fea_1)
         if self.dim2:
-            x1 = x1+x12
-        x = x1 + self.drop_path(self.mlp(self.norm(x1)))
-        return x
-
+            fea_2 = self.norm2(fea_2)
+            fea_2 = self.interact2(fea,fea_2)
+        fea = fea + fea_1    
+        if self.dim2:
+            fea = fea + fea_2    
+        fea = fea + self.drop_path(self.mlp(self.norm(fea)))
         return fea
-        '''
-        if self.dim3:
-            return x,x0,x11,x12
-        else:
-            return x,x0,x11
-        '''
 
+    def flops(self,N1,N2,N3=None):
+        flops = 0
+        flops += self.interact1.flops(N1,N2)
+        if N3:
+            flops += self.interact2.flops(N1,N3)
+        flops += self.dim*N1
+        flops += 2*N1*self.dim*self.dim*self.mlp_ratio
+        return flops
+        
 if __name__ == '__main__':
     model = MultiscaleInteractionBlock(dim1=96,dim2=192,dim3=384)
     model.cuda()
