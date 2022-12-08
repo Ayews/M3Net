@@ -65,8 +65,8 @@ class multiscale_fusion(nn.Module):
         self.f_dim = f_dim
         self.img_size = img_size
         self.up_ratio =  up_ratio
-        self.project = nn.Linear(in_dim, in_dim * up_ratio * up_ratio)
-        self.upsample = nn.PixelShuffle(upscale_factor=up_ratio)
+        #self.project = nn.functional.interpolate()
+        #self.upsample = nn.PixelShuffle(upscale_factor=up_ratio)
         if self.fuse:
             self.mlp1 = nn.Sequential(
                 nn.Linear(in_dim+f_dim, f_dim),
@@ -76,9 +76,9 @@ class multiscale_fusion(nn.Module):
         
     def forward(self,fea,fea_1=None):
         B,L,C = fea.shape
-        fea = self.project(self.norm(fea))
+        #fea = self.project(self.norm(fea))
         
-        fea = self.upsample(fea.transpose(1,2).reshape(B,C,self.img_size[0],self.img_size[1]))
+        fea = nn.functional.interpolate(input=fea.transpose(1,2).reshape(B,C,self.img_size[0]//self.up_ratio,self.img_size[1]//self.up_ratio),scale_factor=self.up_ratio,mode='bilinear',align_corners=True)
         fea = fea.view(B, C, -1).transpose(1, 2)#.contiguous()
         if self.fuse:
             fea = torch.cat([fea,fea_1],dim=2)
