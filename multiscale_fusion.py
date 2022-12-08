@@ -23,22 +23,22 @@ class decoder(nn.Module):
 
 
     def forward(self,f):
-        x1,x2,x3 = f #x1:1/16
-        B,_,_ = x1.shape
-        x2 = self.fusion1(x1,x2)
-        x2 = self.mixatt1(x2)
-        x3 = self.fusion2(x2,x3)
-        x3 = self.mixatt2(x3)
-        x4 = self.fusion3(x3)
-        x1 = self.proj1(x1)
-        x1 = x1.transpose(1, 2).reshape(B, 1, self.img_size // 16, self.img_size // 16)
-        x2 = self.proj2(x2)
-        x2 = x2.transpose(1, 2).reshape(B, 1, self.img_size // 8, self.img_size // 8)
-        x3 = self.proj3(x3)
-        x3 = x3.transpose(1, 2).reshape(B, 1, self.img_size // 4, self.img_size // 4)
-        x4 = self.proj4(x4)
-        x4 = x4.transpose(1, 2).reshape(B, 1, self.img_size // 1, self.img_size // 1)
-        return [x1,x2,x3,x4]
+        fea_1_16,fea_1_8,fea_1_4 = f #fea_1_16:1/16
+        B,_,_ = fea_1_16.shape
+        fea_1_8 = self.fusion1(fea_1_16,fea_1_8)
+        fea_1_8 = self.mixatt1(fea_1_8)
+        fea_1_4 = self.fusion2(fea_1_8,fea_1_4)
+        fea_1_4 = self.mixatt2(fea_1_4)
+        fea_1_1 = self.fusion3(fea_1_4)
+        fea_1_16 = self.proj1(fea_1_16)
+        mask_1_16 = fea_1_16.transpose(1, 2).reshape(B, 1, self.img_size // 16, self.img_size // 16)
+        fea_1_8 = self.proj2(fea_1_8)
+        mask_1_8 = fea_1_8.transpose(1, 2).reshape(B, 1, self.img_size // 8, self.img_size // 8)
+        fea_1_4 = self.proj3(fea_1_4)
+        mask_1_4 = fea_1_4.transpose(1, 2).reshape(B, 1, self.img_size // 4, self.img_size // 4)
+        fea_1_1 = self.proj4(fea_1_1)
+        mask_1_1 = fea_1_1.transpose(1, 2).reshape(B, 1, self.img_size // 1, self.img_size // 1)
+        return [mask_1_16,mask_1_8,mask_1_4,mask_1_1]
     
     def flops(self):
         flops = 0
@@ -74,17 +74,17 @@ class multiscale_fusion(nn.Module):
                 nn.Linear(f_dim, f_dim),
             )
         
-    def forward(self,x1,x2=None):
-        x1 = self.project(self.norm(x1))
-        x1 = self.upsample(x1.transpose(1,2))
-        B, C, _, _ = x1.shape
-        x1 = x1.view(B, C, -1).transpose(1, 2)#.contiguous()
+    def forward(self,fea,fea_1=None):
+        fea = self.project(self.norm(fea))
+        fea = self.upsample(fea.transpose(1,2))
+        B, C, _, _ = fea.shape
+        fea = fea.view(B, C, -1).transpose(1, 2)#.contiguous()
         if self.fuse:
-            x = torch.cat([x1,x2],dim=2)
-            x = self.mlp1(x)
+            fea = torch.cat([fea,fea_1],dim=2)
+            fea = self.mlp1(fea)
         else:
-            x = x1
-        return x
+            fea = fea
+        return fea
     def flops(self):
         N = self.img_size[0]*self.img_size[1]
         flops = 0
@@ -121,12 +121,12 @@ class mixattention(nn.Module):
         )
         self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
 
-    def forward(self,x):
-        x = self.mlp1(self.norm1(x))
+    def forward(self,fea):
+        fea = self.mlp1(self.norm1(fea))
         for blk in self.blocks:
-            x = blk(x)
-        x = self.drop_path(self.mlp2(self.norm2(x)))
-        return x
+            fea = blk(fea)
+        fea = self.drop_path(self.mlp2(self.norm2(fea)))
+        return fea
     def flops(self):
         flops = 0
         N = self.img_size[0]*self.img_size[1]

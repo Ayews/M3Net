@@ -510,9 +510,9 @@ class mixattentionblock(nn.Module):
         self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
 
     def forward(self,x):
-        x1 = self.windowatt(x)
-        x2 = self.globalatt(x)
-        x = x + x1 + x2
+        att1 = self.windowatt(x)
+        att2 = self.globalatt(x)
+        x = x + att1 + att2
         x = x + self.drop_path(self.mlp(self.norm(x)))
         return x
     def flops(self):

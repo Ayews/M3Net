@@ -23,13 +23,12 @@ class MIFSOD(nn.Module):
 
     def forward(self,x):
         #print(x[0].shape)
-        x1,x2,x3,x4 = self.encoder(x)
-        B,_,_ = x1.shape
-        x3_ = self.interact1(x3,x4)
-        x2_ = self.interact2(x2,x3_,x4)
-        x1_ = self.interact3(x1,x2_,x3_)
-        x = self.decoder([x3_,x2_,x1_])
-        return x[3]
+        fea_1_4,fea_1_8,fea_1_16,fea_1_32 = self.encoder(x)
+        fea_1_16_ = self.interact1(fea_1_16,fea_1_32)
+        fea_1_8_ = self.interact2(fea_1_8,fea_1_16_,fea_1_32)
+        fea_1_4_ = self.interact3(fea_1_4,fea_1_8_,fea_1_16_)
+        mask = self.decoder([fea_1_16_,fea_1_8_,fea_1_4_])
+        return mask
 
     def flops(self):
         flops = 0
@@ -64,7 +63,8 @@ if __name__ == '__main__':
     f1 = torch.randn((1,56*56,96))
     f2 = torch.randn((1,28*28,192))
     f3 = torch.randn((1,14*14,384))
-    macs, params = profile(model.decoder.mixatt2, inputs=(f1.cuda(),))
-    print(macs)
+    #print(model.encoder.flops()/1e9)
+    macs, params = profile(model.encoder, inputs=(f.cuda(),))
+    print(macs/1e9,params/1e6)
     
 
