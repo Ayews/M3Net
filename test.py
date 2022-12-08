@@ -18,7 +18,7 @@ import transforms as trans
 #from icon import ICON
 from tqdm import tqdm
 #from branch import branch
-from multiscale_fusion_sod import SOD
+from multiscale_fusion_sod import MIFSOD
 def get_pred_dir(model, data_root = '/home/yy/datasets/'):
     batch_size = 1
     test_paths = [
@@ -118,8 +118,8 @@ args = parser.parse_args(args=[])
 
 #model = ICON(args, model_name='ICON-S')
 #model = branch()
-model = SOD(embed_dim=384,dim=96,img_size=224)
+model = MIFSOD(embed_dim=384,dim=96,img_size=224)
 model.cuda()
-model.load_state_dict(torch.load('/home/yy/savepth/multiscale_fusion_sod_d2_int6_se_cpr120.pth'))
+model.load_state_dict(torch.load('/home/yy/savepth/multiscale_fusion_sod_pshuffle_cpr120.pth'))
 model.eval()
 get_pred_dir(model)

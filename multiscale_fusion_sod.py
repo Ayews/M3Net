@@ -64,7 +64,7 @@ if __name__ == '__main__':
     f2 = torch.randn((1,28*28,192))
     f3 = torch.randn((1,14*14,384))
     #print(model.encoder.flops()/1e9)
-    macs, params = profile(model.encoder, inputs=(f.cuda(),))
+    macs, params = profile(model, inputs=(f.cuda(),))
     print(macs/1e9,params/1e6)
     
 

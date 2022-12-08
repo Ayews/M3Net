@@ -58,7 +58,7 @@ train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=8, shuffle = Tr
 #                                               pin_memory=True,
 #                                               )
 
-method = 'multiscale_fusion_sod_baseline_cpr'
+method = 'multiscale_fusion_sod_pshuffle_cpr'
 #method = 'icon'
 #f = 'lossA2.txt'
 #step 1
@@ -68,15 +68,4 @@ torch.save(model.state_dict(), '/home/yy/savepth/'+method+'100.pth')
 lr = 0.00002
 fit([20],model,lr,train_dl,method)
 torch.save(model.state_dict(), '/home/yy/savepth/'+method+'120.pth')
-lr = 0.000004
-fit([30],model,lr,train_dl,method)
-torch.save(model.state_dict(), '/home/yy/savepth/'+method+'150.pth')
 #writer.close()
-'''
-#step 2
-writer = SummaryWriter()
-lr = 0.0001
-fit([20,10,10],model,lr,train_dl,method,writer)
-torch.save(model.state_dict(), 'save/'+method+'.pth')
-writer = SummaryWriter()
-'''
