@@ -3,4 +3,4 @@ results/*
 cam*
 savepth/*
 preds/*
-eval/*
+eval
