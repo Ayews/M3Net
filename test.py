@@ -24,7 +24,6 @@ def get_pred_dir(model, data_root = '/home/yy/datasets/'):
     test_paths = [
         'DUT-O',
         'DUTS',
-        'DUTS-TR',
         'ECSSD',
         'HKU-IS',
         'PASCAL-S',
@@ -44,14 +43,14 @@ def get_pred_dir(model, data_root = '/home/yy/datasets/'):
         test_loader = torch.utils.data.DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False, num_workers=1)
 
         progress_bar = tqdm(test_loader, desc=dataset_setname)
-
+        progress_bar.set_postfix(ncols=70)
         for i,data_batch in enumerate(progress_bar):
             images, image_w, image_h, image_path = data_batch
             images = Variable(images.cuda())
 
             outputs_saliency = model(images)
 
-            mask_1_1 = outputs_saliency[3]
+            mask_1_1 = outputs_saliency
 
             image_w, image_h = int(image_w[0]), int(image_h[0])
 
@@ -91,7 +90,7 @@ def save_p(size,outputs,image_w,image_h,image_path,dataset_setname):
         filename = image_path[ii].split('/')[-1].split('.')[0]
 
         # save saliency maps
-        save_test_path = '/home/yy/preds/'+dataset_setname+'/'
+        save_test_path = 'preds/'+dataset_setname+'/'
         if not os.path.exists(save_test_path):
             os.makedirs(save_test_path)
         output_si.save(os.path.join(save_test_path, filename + '.png'))
@@ -120,6 +119,6 @@ args = parser.parse_args(args=[])
 #model = branch()
 model = MIFSOD(embed_dim=384,dim=96,img_size=224)
 model.cuda()
-model.load_state_dict(torch.load('/home/yy/savepth/multiscale_fusion_sod_pshuffle_cpr120.pth'))
+model.load_state_dict(torch.load('savepth/multiscale_fusion_sod_nooverlap_cpr100.pth'))
 model.eval()
 get_pred_dir(model)
