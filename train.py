@@ -105,8 +105,7 @@ def train_one_epoch(epoch,epochs,model,opt,train_dl):
         loss1  = F.binary_cross_entropy_with_logits(out2, label_14) + iou_loss(out2, label_14)
         loss2  = F.binary_cross_entropy_with_logits(out3, label_28) + iou_loss(out3, label_28)
         loss3  = F.binary_cross_entropy_with_logits(out4, label_56) + iou_loss(out4, label_56)
-        loss41  = F.binary_cross_entropy_with_logits(out5, label_224)
-        loss4 = loss41 + iou_loss(out5, label_224)
+        loss4  = F.binary_cross_entropy_with_logits(out5, label_224)+ iou_loss(out5, label_224)
         #lossp  = F.binary_cross_entropy_with_logits(pose, label_224) + iou_loss(pose, label_224)
 
         loss = loss1 + loss2 +loss3 + loss4
@@ -131,9 +130,9 @@ def train_one_epoch(epoch,epochs,model,opt,train_dl):
         epoch_loss3 += loss3.cpu().data.item()
         epoch_loss4 += loss4.cpu().data.item()
         #epoch_lossp += lossp.cpu().data.item()
-        epoch_loss41 += loss41.cpu().data.item()
+        #epoch_loss41 += loss41.cpu().data.item()
         progress_bar.set_postfix(loss=f'{epoch_loss4/(i+1):.3f}')
-    return epoch_loss4/l, epoch_loss41/l
+    return epoch_loss4/l#, epoch_loss41/l
         
 def fit(epochs, model, lr, train_dl, method):
     #progress_bar = tqdm(range(epochs))#,desc='Epoch[{:03d}/{:03d}]'.format(epochs, 40))
@@ -150,7 +149,7 @@ def fit(epochs, model, lr, train_dl, method):
             #val_loss = np.sum(np.multiply(losses, nums)) / np.sum(nums)
             #print(val_loss)
             with open(f, 'a') as fe:
-                fe.write(str(sum(epochs[:st])+epoch+1)+'\t{loss:.3f}\t{lossb:.3f}\n'.format(loss = loss[0],lossb = loss[1]))
+                fe.write(str(sum(epochs[:st])+epoch+1)+'\t{loss:.3f}\n'.format(loss = loss))
                                # fe.write(str(sum(epochs[:st])+epoch+1)+'\t{loss1:.3f}\t{loss2:.3f}\t{loss3:.3f}\t{loss4:.3f}\t{lossp:.3f}\n'.format(loss1 = loss[0],loss2 = loss[1],loss3 = loss[2],loss4 = loss[3],lossp = loss[4]))
 
             #writer.add_scalar('Loss/train', loss, sum(epochs[:st])+epoch+1)
