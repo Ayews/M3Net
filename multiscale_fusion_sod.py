@@ -17,20 +17,17 @@ class MIFSOD(nn.Module):
         self.interact2 = MultiscaleInteractionBlock(dim=dim*2,dim1=dim*4,dim2=dim*8,embed_dim=embed_dim,num_heads=6,mlp_ratio=1)
         self.interact3 = MultiscaleInteractionBlock(dim=dim,dim1=dim*2,dim2=dim*4,embed_dim=embed_dim,num_heads=6,mlp_ratio=1)
         
-        #self.decoder = decoder(embed_dim=embed_dim,dim=dim,img_size=img_size,mlp_ratio=1)
-        self.proj = nn.Linear(384,1)
+        self.decoder = decoder(embed_dim=embed_dim,dim=dim,img_size=img_size,mlp_ratio=1)
+
 
 
     def forward(self,x):
         #print(x[0].shape)
         fea_1_4,fea_1_8,fea_1_16,fea_1_32 = self.encoder(x)
-        #fea_1_16_ = self.interact1(fea_1_16,fea_1_32)
-        #fea_1_8_ = self.interact2(fea_1_8,fea_1_16_,fea_1_32)
-        #fea_1_4_ = self.interact3(fea_1_4,fea_1_8_,fea_1_16_)
-        #mask = self.decoder([fea_1_16_,fea_1_8_,fea_1_4_])
-        B,_,_ = fea_1_16.shape
-        mask = self.proj(fea_1_16)
-        mask = nn.functional.interpolate(mask.transpose(1,2).reshape(B,1,14,14),size=(224,224),mode='bilinear',align_corners=True)
+        fea_1_16_ = self.interact1(fea_1_16,fea_1_32)
+        fea_1_8_ = self.interact2(fea_1_8,fea_1_16_,fea_1_32)
+        fea_1_4_ = self.interact3(fea_1_4,fea_1_8_,fea_1_16_)
+        mask = self.decoder([fea_1_16_,fea_1_8_,fea_1_4_])
         return mask
 
     def flops(self):

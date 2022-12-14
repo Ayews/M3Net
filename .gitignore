@@ -4,3 +4,9 @@ cam*
 savepth/*
 preds/*
 eval
+*.pth
+se.png
+seplot.py
+r0.txt
+__pycache__/*
+ImageDepthNet.py
