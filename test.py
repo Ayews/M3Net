@@ -42,15 +42,14 @@ def get_pred_dir(model, data_root = '/home/yy/datasets/'):
         test_dataset = get_loader(img_root, data_root, 224, mode='test')
         test_loader = torch.utils.data.DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False, num_workers=1)
 
-        progress_bar = tqdm(test_loader, desc=dataset_setname)
-        progress_bar.set_postfix(ncols=70)
+        progress_bar = tqdm(test_loader, desc=dataset_setname,ncols=140)
         for i,data_batch in enumerate(progress_bar):
             images, image_w, image_h, image_path = data_batch
             images = Variable(images.cuda())
 
             outputs_saliency = model(images)
 
-            mask_1_1 = outputs_saliency
+            mask_1_1 = outputs_saliency[3]
 
             image_w, image_h = int(image_w[0]), int(image_h[0])
 
@@ -119,6 +118,6 @@ args = parser.parse_args(args=[])
 #model = branch()
 model = MIFSOD(embed_dim=384,dim=96,img_size=224)
 model.cuda()
-model.load_state_dict(torch.load('savepth/multiscale_fusion_sod_nooverlap_cpr100.pth'))
+model.load_state_dict(torch.load('savepth/multiscale_fusion_sod_ablation_+F+MF+MI_cpr120.pth'))
 model.eval()
 get_pred_dir(model)

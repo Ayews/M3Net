@@ -84,7 +84,7 @@ def train_one_epoch(epoch,epochs,model,opt,train_dl):
 
     #opt      = torch.optim.SGD([{'params':base}, {'params':head}], lr=lr, momentum=momen, weight_decay=decay, nesterov=True)
     #model, opt = amp.initialize(model, opt, opt_level='O1') 
-    progress_bar = tqdm(train_dl, desc='Epoch[{:03d}/{:03d}]'.format(epoch+1, epochs))
+    progress_bar = tqdm(train_dl, desc='Epoch[{:03d}/{:03d}]'.format(epoch+1, epochs),ncols=140)
     for i, data_batch in enumerate(progress_bar):
         #opt.param_groups[0]['lr'] = (1-abs((epoch+1)/(epochs+1)*2-1))*lr*0.1
         #opt.param_groups[1]['lr'] = (1-abs((epoch+1)/(epochs+1)*2-1))*lr
@@ -156,7 +156,7 @@ def fit(epochs, model, lr, train_dl, method):
 
             #progress_bar.set_postfix(loss=f'{val_loss:.3f}')
             if epoch % 20 == 19:
-                torch.save(model.state_dict(),"/home/yy/savepth/tmp/"+str(sum(epochs[:st])+epoch+1))
+                torch.save(model.state_dict(),"savepth/tmp/"+str(sum(epochs[:st])+epoch+1))
                 get_pred_dir(model)
                 thread = threading.Thread(target = eval)
                 thread.start()
@@ -179,24 +179,4 @@ def get_opt(lr,model):
     return opt
 
 def eval():
-    os.system('python /home/yy/PySODEvalToolkit/eval.py --method-json /home/yy/PySODEvalToolkit/examples/config_method_json_during_train.json --dataset-json /home/yy/PySODEvalToolkit/examples/config_dataset_json_during_train.json --record-txt results/r0.txt')
-
-def get_opt_i(model):
-    lr = 0.05
-    momen = 0.9
-    decay = 1e-4
-    batchsize = 14
-
-
-    base, head = [], []
-    for name, param in model.named_parameters():
-        if 'encoder.conv1' in name or 'encoder.bn1' in name:
-            pass
-        elif 'encoder' in name:
-            base.append(param)
-        elif 'network' in name:
-            base.append(param)     
-        else:
-            head.append(param)
-    optimizer      = torch.optim.SGD([{'params':base}, {'params':head}], lr=lr, momentum=momen, weight_decay=decay, nesterov=True)
-    return optimizer
+    os.system('python eval/eval.py --method-json eval/examples/config_method_json_during_train.json --dataset-json eval/examples/config_dataset_json_during_train.json --record-txt results/r0.txt')

@@ -81,7 +81,7 @@ def save_p(size,outputs,image_w,image_h,image_path,dataset_setname):
         filename = image_path[ii].split('/')[-1].split('.')[0]
 
         # save saliency maps
-        save_test_path = '/home/yy/preds/test'+dataset_setname+'/'
+        save_test_path = 'preds/test'+dataset_setname+'/'
         if not os.path.exists(save_test_path):
             os.makedirs(save_test_path)
         output_si.save(os.path.join(save_test_path, filename + '.png'))
