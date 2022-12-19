@@ -8,9 +8,9 @@ class decoder(nn.Module):
         self.img_size = img_size
         self.dim = dim
         self.embed_dim = embed_dim
-        self.fusion1 = multiscale_fusion(in_dim=dim*4,f_dim=dim*2,img_size=(img_size//8,img_size//8),up_ratio = 2)
-        self.fusion2 = multiscale_fusion(in_dim=dim*2,f_dim=dim,img_size=(img_size//4,img_size//4),up_ratio = 2)
-        self.fusion3 = multiscale_fusion(in_dim=dim,f_dim=dim,img_size=(img_size//1,img_size//1),up_ratio = 4,fuse=False)
+        self.fusion1 = multiscale_fusion(in_dim=dim*4,f_dim=dim*2,kernel_size=(3,3),img_size=(img_size//8,img_size//8),stride=(2,2),padding=(1,1))
+        self.fusion2 = multiscale_fusion(in_dim=dim*2,f_dim=dim,kernel_size=(3,3),img_size=(img_size//4,img_size//4),stride=(2,2),padding=(1,1))
+        self.fusion3 = multiscale_fusion(in_dim=dim,f_dim=dim,kernel_size=(7,7),img_size=(img_size//1,img_size//1),stride=(4,4),padding=(2,2),fuse=False)
 
         self.mixatt1 = mixattention(in_dim=dim*2,dim=embed_dim,img_size=(img_size//8,img_size//8),num_heads=1,mlp_ratio=mlp_ratio)
         self.mixatt2 = mixattention(in_dim=dim,dim=embed_dim,img_size=(img_size//4,img_size//4),num_heads=1,mlp_ratio=mlp_ratio)
@@ -57,34 +57,35 @@ class decoder(nn.Module):
 
 
 class multiscale_fusion(nn.Module):
-    def __init__(self,in_dim,f_dim,img_size,up_ratio,fuse=True):
+    def __init__(self,in_dim,f_dim,kernel_size,img_size,stride,padding,fuse=True):
         super(multiscale_fusion, self).__init__()
         self.fuse = fuse
         self.norm = nn.LayerNorm(in_dim)
         self.in_dim = in_dim
         self.f_dim = f_dim
+        self.kernel_size = kernel_size
         self.img_size = img_size
-        self.up_ratio =  up_ratio
-        #self.project = nn.functional.interpolate()
-        #self.upsample = nn.PixelShuffle(upscale_factor=up_ratio)
+        self.project = nn.Linear(in_dim, in_dim * kernel_size[0] * kernel_size[1])
+        self.upsample = nn.Fold(output_size=img_size, kernel_size=kernel_size, stride=stride, padding=padding)
         if self.fuse:
             self.mlp1 = nn.Sequential(
                 nn.Linear(in_dim+f_dim, f_dim),
                 nn.GELU(),
                 nn.Linear(f_dim, f_dim),
             )
+        else:
+            self.proj = nn.Linear(in_dim,f_dim)
         
     def forward(self,fea,fea_1=None):
-        B,L,C = fea.shape
-        #fea = self.project(self.norm(fea))
-        
-        fea = nn.functional.interpolate(input=fea.transpose(1,2).reshape(B,C,self.img_size[0]//self.up_ratio,self.img_size[1]//self.up_ratio),scale_factor=self.up_ratio,mode='bilinear',align_corners=True)
+        fea = self.project(self.norm(fea))
+        fea = self.upsample(fea.transpose(1,2))
+        B, C, _, _ = fea.shape
         fea = fea.view(B, C, -1).transpose(1, 2)#.contiguous()
         if self.fuse:
             fea = torch.cat([fea,fea_1],dim=2)
             fea = self.mlp1(fea)
         else:
-            fea = fea
+            fea = self.proj(fea)
         return fea
     def flops(self):
         N = self.img_size[0]*self.img_size[1]
@@ -92,8 +93,7 @@ class multiscale_fusion(nn.Module):
         #norm
         flops += N * self.in_dim
         #proj
-        #flops += N*self.in_dim*self.in_dim*self.kernel_size[0]*self.kernel_size[1]
-        flops += N*self.in_dim*self.in_dim*self.up_ratio*self.up_ratio
+        flops += N*self.in_dim*self.in_dim*self.kernel_size[0]*self.kernel_size[1]
         #mlp
         flops += N*(self.in_dim+self.f_dim)*self.f_dim
         flops += N*self.f_dim*self.f_dim

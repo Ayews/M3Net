@@ -58,7 +58,7 @@ train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=8, shuffle = Tr
 #                                               pin_memory=True,
 #                                               )
 
-method = 'multiscale_fusion_sod_MA_onlywindow_cpr'
+method = 'multiscale_fusion_sod_MA_bce'
 #method = 'icon'
 #f = 'lossA2.txt'
 #step 1

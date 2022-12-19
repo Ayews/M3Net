@@ -13,9 +13,9 @@ class MIFSOD(nn.Module):
                                            depths=[2,2,18,2],
                                            num_heads=[3,6,12,24],
                                            window_size=7)
-        self.interact1 = MultiscaleInteractionBlock(dim=dim*4,dim1=dim*8,embed_dim=embed_dim,num_heads=6,mlp_ratio=1)
-        self.interact2 = MultiscaleInteractionBlock(dim=dim*2,dim1=dim*4,dim2=dim*8,embed_dim=embed_dim,num_heads=6,mlp_ratio=1)
-        self.interact3 = MultiscaleInteractionBlock(dim=dim,dim1=dim*2,dim2=dim*4,embed_dim=embed_dim,num_heads=6,mlp_ratio=1)
+        self.interact1 = MultiscaleInteractionBlock(dim=dim*4,dim1=dim*8,embed_dim=embed_dim,num_heads=6,mlp_ratio=3)
+        self.interact2 = MultiscaleInteractionBlock(dim=dim*2,dim1=dim*4,dim2=dim*8,embed_dim=embed_dim,num_heads=6,mlp_ratio=3)
+        self.interact3 = MultiscaleInteractionBlock(dim=dim,dim1=dim*2,dim2=dim*4,embed_dim=embed_dim,num_heads=6,mlp_ratio=3)
         
         self.decoder = decoder(embed_dim=embed_dim,dim=dim,img_size=img_size,mlp_ratio=1)
 

@@ -494,6 +494,9 @@ class mixattentionblock(nn.Module):
                  mlp_ratio=mlp_ratio, qkv_bias=True, qk_scale=None, drop=0., attn_drop=0., drop_path=0.,
                  act_layer=nn.GELU, norm_layer=nn.LayerNorm,
                  fused_window_process=False)
+        self.globalatt = Block(dim=dim,num_heads=num_heads,mlp_ratio=mlp_ratio, qkv_bias=False, qk_scale=None, drop=0., attn_drop=0.,
+                 drop_path=0., act_layer=nn.GELU, norm_layer=nn.LayerNorm)
+        #self.concatfuse = nn.Sequential(
         #    nn.Linear(dim*2, dim),
         #    nn.GELU(),
         #    nn.Linear(dim, dim),
@@ -508,8 +511,8 @@ class mixattentionblock(nn.Module):
 
     def forward(self,x):
         att1 = self.windowatt(x)
-        #att2 = self.globalatt(x)
-        x = x + att1# + att2
+        att2 = self.globalatt(x)
+        x = x + att1 + att2
         x = x + self.drop_path(self.mlp(self.norm(x)))
         return x
     def flops(self):
