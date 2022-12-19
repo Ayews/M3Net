@@ -10,3 +10,4 @@ seplot.py
 r0.txt
 __pycache__/*
 ImageDepthNet.py
+*.pyc
