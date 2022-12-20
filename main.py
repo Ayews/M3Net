@@ -58,14 +58,14 @@ train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=8, shuffle = Tr
 #                                               pin_memory=True,
 #                                               )
 
-method = 'multiscale_fusion_sod_MA_bce'
+method = 'multiscale_fusion_sod_wbce'
 #method = 'icon'
 #f = 'lossA2.txt'
 #step 1
 lr = 0.0001
 fit([100],model,lr,train_dl,method)
-torch.save(model.state_dict(), '/home/yy/savepth/'+method+'100.pth')
+torch.save(model.state_dict(), 'savepth/'+method+'100.pth')
 lr = 0.00002
 fit([20],model,lr,train_dl,method)
-torch.save(model.state_dict(), '/home/yy/savepth/'+method+'120.pth')
+torch.save(model.state_dict(), 'savepth/'+method+'120.pth')
 #writer.close()
