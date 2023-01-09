@@ -102,10 +102,10 @@ def train_one_epoch(epoch,epochs,model,opt,train_dl):
         out2, out3, out4, out5 = model(images)
         #att1,att2 = att
         
-        loss4  = F.binary_cross_entropy_with_logits(out2, label_14)# + iou_loss(out2, label_14)
-        loss3  = F.binary_cross_entropy_with_logits(out3, label_28)# + iou_loss(out3, label_28)
-        loss2  = F.binary_cross_entropy_with_logits(out4, label_56)# + iou_loss(out4, label_56)
-        loss1  = F.binary_cross_entropy_with_logits(out5, label_224)# + iou_loss(out5, label_224)
+        loss4  = F.binary_cross_entropy_with_logits(out2, label_14) + iou_loss(out2, label_14)
+        loss3  = F.binary_cross_entropy_with_logits(out3, label_28) + iou_loss(out3, label_28)
+        loss2  = F.binary_cross_entropy_with_logits(out4, label_56) + iou_loss(out4, label_56)
+        loss1  = F.binary_cross_entropy_with_logits(out5, label_224) + iou_loss(out5, label_224)
         #lossp  = F.binary_cross_entropy_with_logits(pose, label_224) + iou_loss(pose, label_224)
 
         loss = loss_weights[0] * loss1 + loss_weights[1] * loss2 + loss_weights[2] * loss3 + loss_weights[3] * loss4

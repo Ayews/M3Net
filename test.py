@@ -59,7 +59,7 @@ def get_pred_dir(model, data_root = '/home/yy/datasets/'):
                 transforms.ToPILImage(),
                 trans.Scale((image_w, image_h))
             ])
-            output_s = output_s.data.cpu().squeeze(0)
+            #output_s = output_s.data.cpu().squeeze(0)
             thread = threading.Thread(target = save_p,args = (output_s.shape[0],output_s,image_w,image_h,image_path,dataset_setname))
             thread.start()
         '''
@@ -118,6 +118,6 @@ args = parser.parse_args(args=[])
 #model = branch()
 model = MIFSOD(embed_dim=384,dim=96,img_size=224)
 model.cuda()
-model.load_state_dict(torch.load('savepth/multiscale_fusion_sod_wbce100.pth'))
+model.load_state_dict(torch.load('savepth/multiscale_fusion_sod_123_2_cpr120.pth'))
 model.eval()
 get_pred_dir(model)
