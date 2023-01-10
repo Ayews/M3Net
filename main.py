@@ -42,7 +42,7 @@ import cv2
 #img = cv2.cvtColor(cv2.resize((cv2.imread('/mnt/disk2/dataset/MSRA10K/imgs/75.jpg')),(224,224)), cv2.COLOR_RGB2BGR)*1.0/255
 #writer.add_graph(model, torch.from_numpy(np.asarray(img).astype(np.float32).transpose(2,0,1)).view(-1, 3, 224, 224).cuda())
 
-model.encoder.load_state_dict(torch.load('/home/yy/pretrained_model/swin_small_patch4_window7_224.pth')['model'])
+model.encoder.load_state_dict(torch.load('/home/yy/pretrained_model/swin_tiny_patch4_window7_224.pth')['model'])
 
 model.train()
 train_dataset = get_loader('DUTS/DUTS-TR', "/home/yy/datasets/", 224, mode='train')
@@ -58,7 +58,7 @@ train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=8, shuffle = Tr
 #                                               pin_memory=True,
 #                                               )
 
-method = 'multiscale_fusion_sod_123_2_cpr'
+method = 'multiscale_fusion_sod_tiny_2_cpr'
 #method = 'icon'
 #f = 'lossA2.txt'
 #step 1

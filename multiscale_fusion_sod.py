@@ -10,12 +10,12 @@ class MIFSOD(nn.Module):
         self.img_size = img_size
         self.encoder = SwinTransformer(img_size=img_size, 
                                            embed_dim=dim,
-                                           depths=[2,2,18,2],
+                                           depths=[2,2,6,2],
                                            num_heads=[3,6,12,24],
                                            window_size=7)
-        self.interact1 = MultiscaleInteractionBlock(dim=dim*4,dim1=dim*8,embed_dim=embed_dim,num_heads=12,mlp_ratio=3)
-        self.interact2 = MultiscaleInteractionBlock(dim=dim*2,dim1=dim*4,dim2=dim*8,embed_dim=embed_dim,num_heads=6,mlp_ratio=3)
-        self.interact3 = MultiscaleInteractionBlock(dim=dim,dim1=dim*2,dim2=dim*4,embed_dim=embed_dim,num_heads=3,mlp_ratio=3)
+        #self.interact1 = MultiscaleInteractionBlock(dim=dim*4,dim1=dim*8,embed_dim=embed_dim,num_heads=4,mlp_ratio=3)
+        #self.interact2 = MultiscaleInteractionBlock(dim=dim*2,dim1=dim*4,dim2=dim*8,embed_dim=embed_dim,num_heads=2,mlp_ratio=3)
+        #self.interact3 = MultiscaleInteractionBlock(dim=dim,dim1=dim*2,dim2=dim*4,embed_dim=embed_dim,num_heads=1,mlp_ratio=3)
         
         self.decoder = decoder(embed_dim=embed_dim,dim=dim,img_size=img_size,mlp_ratio=1)
 
@@ -24,10 +24,10 @@ class MIFSOD(nn.Module):
     def forward(self,x):
         #print(x[0].shape)
         fea_1_4,fea_1_8,fea_1_16,fea_1_32 = self.encoder(x)
-        fea_1_16_ = self.interact1(fea_1_16,fea_1_32)
-        fea_1_8_ = self.interact2(fea_1_8,fea_1_16_,fea_1_32)
-        fea_1_4_ = self.interact3(fea_1_4,fea_1_8_,fea_1_16_)
-        mask = self.decoder([fea_1_16_,fea_1_8_,fea_1_4_])
+        #fea_1_16_ = self.interact1(fea_1_16,fea_1_32)
+        #fea_1_8_ = self.interact2(fea_1_8,fea_1_16_,fea_1_32)
+        #fea_1_4_ = self.interact3(fea_1_4,fea_1_8_,fea_1_16_)
+        mask = self.decoder([fea_1_16,fea_1_8,fea_1_4])
         return mask
 
     def flops(self):

@@ -188,7 +188,8 @@ def T2t_vit_t_14(pretrained=True, **kwargs):  # adopt transformers for tokens to
     # model = T2T_ViT(tokens_type='transformer', embed_dim=384, depth=14, num_heads=6, mlp_ratio=3., **kwargs)
     model = T2T_ViT(tokens_type='transformer', embed_dim=384, depth=14, num_heads=6, mlp_ratio=3.)
     model.default_cfg = default_cfgs['T2t_vit_t_14']
-    args = kwargs['args']
+    if kwargs:
+        args = kwargs['args']
     if pretrained:
         load_checkpoint(model, args.pretrained_model, use_ema=True)
         print('Model loaded from {}'.format(args.pretrained_model))
