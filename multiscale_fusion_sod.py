@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 from Models.swin import SwinTransformer
+from Models.icon.resnet_encoder import ResNet
+from Models.t2t_vit import T2t_vit_t_14
 from multiscale_fusion import decoder
 #from multiscale_interference import multiscale_cross_attention
 from multiscale_interaction import MultiscaleInteractionBlock
@@ -8,14 +10,10 @@ class MIFSOD(nn.Module):
     def __init__(self,embed_dim=384,dim=96,img_size=224):
         super(MIFSOD, self).__init__()
         self.img_size = img_size
-        self.encoder = SwinTransformer(img_size=img_size, 
-                                           embed_dim=dim,
-                                           depths=[2,2,6,2],
-                                           num_heads=[3,6,12,24],
-                                           window_size=7)
+        self.encoder = T2t_vit_t_14(pretrained=False)
         #self.interact1 = MultiscaleInteractionBlock(dim=dim*4,dim1=dim*8,embed_dim=embed_dim,num_heads=4,mlp_ratio=3)
-        #self.interact2 = MultiscaleInteractionBlock(dim=dim*2,dim1=dim*4,dim2=dim*8,embed_dim=embed_dim,num_heads=2,mlp_ratio=3)
-        #self.interact3 = MultiscaleInteractionBlock(dim=dim,dim1=dim*2,dim2=dim*4,embed_dim=embed_dim,num_heads=1,mlp_ratio=3)
+        self.interact2 = MultiscaleInteractionBlock(dim=dim,dim1=embed_dim,embed_dim=embed_dim,num_heads=2,mlp_ratio=3)
+        self.interact3 = MultiscaleInteractionBlock(dim=dim,dim1=dim,dim2=embed_dim,embed_dim=embed_dim,num_heads=1,mlp_ratio=3)
         
         self.decoder = decoder(embed_dim=embed_dim,dim=dim,img_size=img_size,mlp_ratio=1)
 
@@ -23,11 +21,11 @@ class MIFSOD(nn.Module):
 
     def forward(self,x):
         #print(x[0].shape)
-        fea_1_4,fea_1_8,fea_1_16,fea_1_32 = self.encoder(x)
+        fea_1_4,fea_1_8,fea_1_16 = self.encoder(x)
         #fea_1_16_ = self.interact1(fea_1_16,fea_1_32)
-        #fea_1_8_ = self.interact2(fea_1_8,fea_1_16_,fea_1_32)
-        #fea_1_4_ = self.interact3(fea_1_4,fea_1_8_,fea_1_16_)
-        mask = self.decoder([fea_1_16,fea_1_8,fea_1_4])
+        fea_1_8_ = self.interact2(fea_1_8,fea_1_16)
+        fea_1_4_ = self.interact3(fea_1_4,fea_1_8_,fea_1_16)
+        mask = self.decoder([fea_1_16,fea_1_8_,fea_1_4_])
         return mask
 
     def flops(self):
