@@ -131,8 +131,8 @@ def train_one_epoch(epoch,epochs,model,opt,train_dl):
         epoch_loss4 += loss4.cpu().data.item()
         #epoch_lossp += lossp.cpu().data.item()
         #epoch_loss41 += loss41.cpu().data.item()
-        progress_bar.set_postfix(loss=f'{epoch_loss4/(i+1):.3f}')
-    return epoch_loss4/l#, epoch_loss41/l
+        progress_bar.set_postfix(loss=f'{epoch_loss1/(i+1):.3f}')
+    return epoch_loss1/l#, epoch_loss41/l
         
 def fit(epochs, model, lr, train_dl, method):
     #progress_bar = tqdm(range(epochs))#,desc='Epoch[{:03d}/{:03d}]'.format(epochs, 40))

@@ -10,10 +10,14 @@ class MIFSOD(nn.Module):
     def __init__(self,embed_dim=384,dim=96,img_size=224):
         super(MIFSOD, self).__init__()
         self.img_size = img_size
-        self.encoder = T2t_vit_t_14(pretrained=False)
-        #self.interact1 = MultiscaleInteractionBlock(dim=dim*4,dim1=dim*8,embed_dim=embed_dim,num_heads=4,mlp_ratio=3)
-        self.interact2 = MultiscaleInteractionBlock(dim=dim,dim1=embed_dim,embed_dim=embed_dim,num_heads=2,mlp_ratio=3)
-        self.interact3 = MultiscaleInteractionBlock(dim=dim,dim1=dim,dim2=embed_dim,embed_dim=embed_dim,num_heads=1,mlp_ratio=3)
+        self.encoder = ResNet()
+        self.tf1 = nn.Conv2d(256,96,1,1,0)
+        self.tf2 = nn.Conv2d(512,192,1,1,0)
+        self.tf3 = nn.Conv2d(1024,384,1,1,0)
+        self.tf4 = nn.Conv2d(2048,768,1,1,0)
+        self.interact1 = MultiscaleInteractionBlock(dim=dim*4,dim1=dim*8,embed_dim=embed_dim,num_heads=1,mlp_ratio=3)
+        self.interact2 = MultiscaleInteractionBlock(dim=dim*2,dim1=dim*4,dim2=dim*8,embed_dim=embed_dim,num_heads=1,mlp_ratio=3)
+        self.interact3 = MultiscaleInteractionBlock(dim=dim,dim1=dim*2,dim2=dim*4,embed_dim=embed_dim,num_heads=1,mlp_ratio=3)
         
         self.decoder = decoder(embed_dim=embed_dim,dim=dim,img_size=img_size,mlp_ratio=1)
 
@@ -21,11 +25,17 @@ class MIFSOD(nn.Module):
 
     def forward(self,x):
         #print(x[0].shape)
-        fea_1_4,fea_1_8,fea_1_16 = self.encoder(x)
-        #fea_1_16_ = self.interact1(fea_1_16,fea_1_32)
-        fea_1_8_ = self.interact2(fea_1_8,fea_1_16)
-        fea_1_4_ = self.interact3(fea_1_4,fea_1_8_,fea_1_16)
-        mask = self.decoder([fea_1_16,fea_1_8_,fea_1_4_])
+        fea_1_4,fea_1_8,fea_1_16,fea_1_32 = self.encoder(x)
+        B,_,_,_ = fea_1_4.shape
+        #print(fea_1_4.shape)
+        fea_1_4 = self.tf1(fea_1_4).view(B,96,-1).transpose(1,2)
+        fea_1_8 = self.tf2(fea_1_8).view(B,192,-1).transpose(1,2)
+        fea_1_16 = self.tf3(fea_1_16).view(B,384,-1).transpose(1,2)
+        fea_1_32 = self.tf4(fea_1_32).view(B,768,-1).transpose(1,2)
+        fea_1_16_ = self.interact1(fea_1_16,fea_1_32)
+        fea_1_8_ = self.interact2(fea_1_8,fea_1_16_,fea_1_32)
+        fea_1_4_ = self.interact3(fea_1_4,fea_1_8_,fea_1_16_)
+        mask = self.decoder([fea_1_16_,fea_1_8_,fea_1_4_])
         return mask
 
     def flops(self):

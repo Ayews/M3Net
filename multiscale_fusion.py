@@ -8,15 +8,15 @@ class decoder(nn.Module):
         self.img_size = img_size
         self.dim = dim
         self.embed_dim = embed_dim
-        self.fusion1 = multiscale_fusion(in_dim=embed_dim,f_dim=dim,kernel_size=(3,3),img_size=(img_size//8,img_size//8),stride=(2,2),padding=(1,1))
-        self.fusion2 = multiscale_fusion(in_dim=dim,f_dim=dim,kernel_size=(3,3),img_size=(img_size//4,img_size//4),stride=(2,2),padding=(1,1))
+        self.fusion1 = multiscale_fusion(in_dim=dim*4,f_dim=dim*2,kernel_size=(3,3),img_size=(img_size//8,img_size//8),stride=(2,2),padding=(1,1))
+        self.fusion2 = multiscale_fusion(in_dim=dim*2,f_dim=dim,kernel_size=(3,3),img_size=(img_size//4,img_size//4),stride=(2,2),padding=(1,1))
         self.fusion3 = multiscale_fusion(in_dim=dim,f_dim=dim,kernel_size=(7,7),img_size=(img_size//1,img_size//1),stride=(4,4),padding=(2,2),fuse=False)
 
-        self.mixatt1 = mixattention(in_dim=dim,dim=embed_dim,img_size=(img_size//8,img_size//8),num_heads=1,mlp_ratio=mlp_ratio)
+        self.mixatt1 = mixattention(in_dim=dim*2,dim=embed_dim,img_size=(img_size//8,img_size//8),num_heads=1,mlp_ratio=mlp_ratio)
         self.mixatt2 = mixattention(in_dim=dim,dim=embed_dim,img_size=(img_size//4,img_size//4),num_heads=1,mlp_ratio=mlp_ratio)
 
-        self.proj1 = nn.Linear(embed_dim,1)
-        self.proj2 = nn.Linear(dim,1)
+        self.proj1 = nn.Linear(dim*4,1)
+        self.proj2 = nn.Linear(dim*2,1)
         self.proj3 = nn.Linear(dim,1)
         self.proj4 = nn.Linear(dim,1)
 
