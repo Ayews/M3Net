@@ -15,29 +15,26 @@ class decoder(nn.Module):
         self.mixatt1 = mixattention(in_dim=dim*2,dim=embed_dim,img_size=(img_size//8,img_size//8),num_heads=1,mlp_ratio=mlp_ratio)
         self.mixatt2 = mixattention(in_dim=dim,dim=embed_dim,img_size=(img_size//4,img_size//4),num_heads=1,mlp_ratio=mlp_ratio)
 
-        self.proj1 = nn.Linear(dim*4,1)
-        self.proj2 = nn.Linear(dim*2,1)
-        self.proj3 = nn.Linear(dim,1)
-        self.proj4 = nn.Linear(dim,1)
+        self.proj1 = nn.Conv2d(in_channels=dim*4,out_channels=1,kernel_size=3,stride=1,padding=1)
+        self.proj2 = nn.Conv2d(in_channels=dim*2,out_channels=1,kernel_size=3,stride=1,padding=1)
+        self.proj3 = nn.Conv2d(in_channels=dim,out_channels=1,kernel_size=3,stride=1,padding=1)
+        self.proj4 = nn.Conv2d(in_channels=dim,out_channels=1,kernel_size=3,stride=1,padding=1)
 
 
 
     def forward(self,f):
         fea_1_16,fea_1_8,fea_1_4 = f #fea_1_16:1/16
+        dim = self.dim
         B,_,_ = fea_1_16.shape
         fea_1_8 = self.fusion1(fea_1_16,fea_1_8)
         fea_1_8 = self.mixatt1(fea_1_8)
         fea_1_4 = self.fusion2(fea_1_8,fea_1_4)
         fea_1_4 = self.mixatt2(fea_1_4)
         fea_1_1 = self.fusion3(fea_1_4)
-        fea_1_16 = self.proj1(fea_1_16)
-        mask_1_16 = fea_1_16.transpose(1, 2).reshape(B, 1, self.img_size // 16, self.img_size // 16)
-        fea_1_8 = self.proj2(fea_1_8)
-        mask_1_8 = fea_1_8.transpose(1, 2).reshape(B, 1, self.img_size // 8, self.img_size // 8)
-        fea_1_4 = self.proj3(fea_1_4)
-        mask_1_4 = fea_1_4.transpose(1, 2).reshape(B, 1, self.img_size // 4, self.img_size // 4)
-        fea_1_1 = self.proj4(fea_1_1)
-        mask_1_1 = fea_1_1.transpose(1, 2).reshape(B, 1, self.img_size // 1, self.img_size // 1)
+        mask_1_16 = self.proj1(fea_1_16.transpose(1, 2).reshape(B, dim*4, self.img_size // 16, self.img_size // 16))
+        mask_1_8 = self.proj2(fea_1_8.transpose(1, 2).reshape(B, dim*2, self.img_size // 8, self.img_size // 8))
+        mask_1_4 = self.proj3(fea_1_4.transpose(1, 2).reshape(B, dim, self.img_size // 4, self.img_size // 4))
+        mask_1_1 = self.proj4(fea_1_1.transpose(1, 2).reshape(B, dim, self.img_size // 1, self.img_size // 1))
         return [mask_1_16,mask_1_8,mask_1_4,mask_1_1]
     
     def flops(self):

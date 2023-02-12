@@ -42,11 +42,11 @@ import cv2
 #img = cv2.cvtColor(cv2.resize((cv2.imread('/mnt/disk2/dataset/MSRA10K/imgs/75.jpg')),(224,224)), cv2.COLOR_RGB2BGR)*1.0/255
 #writer.add_graph(model, torch.from_numpy(np.asarray(img).astype(np.float32).transpose(2,0,1)).view(-1, 3, 224, 224).cuda())
 
-#model.encoder.load_state_dict(torch.load('/home/yy/pretrained_model/swin_tiny_patch4_window7_224.pth')['model'])
+model.encoder.load_state_dict(torch.load('/home/yy/pretrained_model/swin_small_patch4_window7_224.pth')['model'])
 #model.encoder.load_state_dict(torch.load('/home/yy/pretrained_model/T2T_ViTt_14.pth.tar')['state_dict_ema'])
-pretrained_dict = torch.load('/home/yy/pretrained_model/resnet50.pth')
-pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model.encoder.state_dict()}
-model.encoder.load_state_dict(pretrained_dict)
+#pretrained_dict = torch.load('/home/yy/pretrained_model/resnet50.pth')
+#pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model.encoder.state_dict()}
+#model.encoder.load_state_dict(pretrained_dict)
 model.train()
 train_dataset = get_loader('DUTS/DUTS-TR', "/home/yy/datasets/", 224, mode='train')
 #train_dataset_b = get_loader('DUTS_MSRA10K', "/home/yy/datasets/", 224, mode='train')
@@ -61,7 +61,7 @@ train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=8, shuffle = Tr
 #                                               pin_memory=True,
 #                                               )
 
-method = 'multiscale_fusion_sod_resnet50_SET_cpr'
+method = 'multiscale_fusion_sod_final_conv_cpr'
 #method = 'icon'
 #f = 'lossA2.txt'
 #step 1
