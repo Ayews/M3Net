@@ -61,7 +61,7 @@ train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=8, shuffle = Tr
 #                                               pin_memory=True,
 #                                               )
 
-method = 'multiscale_fusion_sod_final_conv_cpr'
+method = 'multiscale_fusion_sod_baseline_cpr'
 #method = 'icon'
 #f = 'lossA2.txt'
 #step 1
