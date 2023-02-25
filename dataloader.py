@@ -2,7 +2,6 @@
 import numpy as np
 from PIL import Image
 from torch.utils import data
-import transforms as trans
 from torchvision import transforms
 import random
 import os
@@ -11,7 +10,6 @@ def load_list(dataset_name, data_root):
 
     images = []
     labels = []
-    #contours = []
 
     img_root = data_root + dataset_name + '/imgs/'
     img_files = os.listdir(img_root)
@@ -20,9 +18,8 @@ def load_list(dataset_name, data_root):
 
         images.append(img_root + img[:-4]+'.jpg')
         labels.append(img_root.replace('/imgs/', '/gt/') + img[:-4]+'.png')
-        #contours.append(img_root.replace('/imgs/', '/DUTS-TR-Contour/') + img[:-4] + '.png')
 
-    return images, labels#, contours
+    return images, labels
 
 
 def load_test_list(test_path, data_root):
@@ -30,13 +27,13 @@ def load_test_list(test_path, data_root):
     images = []
 
     img_root = data_root + test_path + '/imgs/'
-
-
     img_files = os.listdir(img_root)
+
     if '/HKU-IS/' in img_root:
         ext = '.png'
     else:
         ext = '.jpg'
+        
     for img in img_files:
         images.append(img_root + img[:-4] + ext)
 
@@ -44,20 +41,18 @@ def load_test_list(test_path, data_root):
 
 
 class ImageData(data.Dataset):
-    def __init__(self, dataset_list, data_root, transform, mode, img_size=None, scale_size=None, t_transform=None, label_14_transform=None, label_28_transform=None, label_56_transform=None, label_112_transform=None):
+    def __init__(self, dataset_list, data_root, transform, mode, img_size=None, scale_size=None, t_transform=None, label_1_16_transform=None, label_1_8_transform=None, label_1_4_transform=None):
 
         if mode == 'train':
-            #self.image_path, self.label_path = load_list(dataset_list, data_root)
             self.image_path, self.label_path = load_list(dataset_list, data_root)
         else:
             self.image_path = load_test_list(dataset_list, data_root)
 
         self.transform = transform
         self.t_transform = t_transform
-        self.label_14_transform = label_14_transform
-        self.label_28_transform = label_28_transform
-        self.label_56_transform = label_56_transform
-        self.label_112_transform = label_112_transform
+        self.label_1_16_transform = label_1_16_transform
+        self.label_1_8_transform = label_1_8_transform
+        self.label_1_4_transform = label_1_4_transform
         self.mode = mode
         self.img_size = img_size
         self.scale_size = scale_size
@@ -75,8 +70,8 @@ class ImageData(data.Dataset):
             label = Image.open(self.label_path[item]).convert('L')
             random_size = self.scale_size
 
-            new_img = trans.Scale((random_size, random_size))(image)
-            new_label = trans.Scale((random_size, random_size), interpolation=Image.NEAREST)(label)
+            new_img = transforms.Resize((random_size, random_size))(image)
+            new_label = transforms.Resize((random_size, random_size), interpolation=Image.NEAREST)(label)
 
             # random crop
             w, h = new_img.size
@@ -93,14 +88,13 @@ class ImageData(data.Dataset):
 
             new_img = self.transform(new_img)
 
-            label_14 = self.label_14_transform(new_label)
-            label_28 = self.label_28_transform(new_label)
-            label_56 = self.label_56_transform(new_label)
-            label_112 = self.label_112_transform(new_label)
+            label_1_16 = self.label_1_16_transform(new_label)
+            label_1_8 = self.label_1_8_transform(new_label)
+            label_1_4 = self.label_1_4_transform(new_label)
             label_224 = self.t_transform(new_label)
 
 
-            return new_img, label_224, label_14, label_28, label_56, label_112,
+            return new_img, label_224, label_1_16, label_1_8, label_1_4
         else:
 
             image = self.transform(image)
@@ -115,28 +109,24 @@ def get_loader(dataset_list, data_root, img_size, mode='train'):
 
     if mode == 'train':
 
-        transform = trans.Compose([
+        transform = transforms.Compose([
                 transforms.ToTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
         ])
 
-        t_transform = trans.Compose([
+        t_transform = transforms.Compose([
             transforms.ToTensor(),
         ])
-        label_14_transform = trans.Compose([
-            trans.Scale((img_size // 16, img_size // 16), interpolation=Image.NEAREST),
+        label_1_16_transform = transforms.Compose([
+            transforms.Resize((img_size // 16, img_size // 16), interpolation=Image.NEAREST),
             transforms.ToTensor(),
         ])
-        label_28_transform = trans.Compose([
-            trans.Scale((img_size//8, img_size//8), interpolation=Image.NEAREST),
+        label_1_8_transform = transforms.Compose([
+            transforms.Resize((img_size//8, img_size//8), interpolation=Image.NEAREST),
             transforms.ToTensor(),
         ])
-        label_56_transform = trans.Compose([
-            trans.Scale((img_size//4, img_size//4), interpolation=Image.NEAREST),
-            transforms.ToTensor(),
-        ])
-        label_112_transform = trans.Compose([
-            trans.Scale((img_size//2, img_size//2), interpolation=Image.NEAREST),
+        label_1_4_transform = transforms.Compose([
+            transforms.Resize((img_size//4, img_size//4), interpolation=Image.NEAREST),
             transforms.ToTensor(),
         ])
         if img_size == 224:
@@ -144,16 +134,15 @@ def get_loader(dataset_list, data_root, img_size, mode='train'):
         else:
             scale_size = 512
     else:
-        transform = trans.Compose([
-            trans.Scale((img_size, img_size)),
+        transform = transforms.Compose([
+            transforms.Resize(img_size, img_size),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),  # 处理的是Tensor
         ])
 
     if mode == 'train':
-        dataset = ImageData(dataset_list, data_root, transform, mode, img_size, scale_size, t_transform, label_14_transform, label_28_transform, label_56_transform, label_112_transform)
+        dataset = ImageData(dataset_list, data_root, transform, mode, img_size, scale_size, t_transform, label_1_16_transform, label_1_8_transform, label_1_4_transform)
     else:
         dataset = ImageData(dataset_list, data_root, transform, mode)
 
-    # data_loader = data.DataLoader(dataset=dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_thread)
     return dataset

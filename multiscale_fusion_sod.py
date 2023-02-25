@@ -3,32 +3,38 @@ import torch.nn as nn
 from Models.swin import SwinTransformer
 from Models.icon.resnet_encoder import ResNet
 from Models.t2t_vit import T2t_vit_t_14
-from multiscale_fusion import decoder
-#from multiscale_interference import multiscale_cross_attention
-from multiscale_interaction import MultiscaleInteractionBlock
-class MIFSOD(nn.Module):
-    def __init__(self,embed_dim=384,dim=96,img_size=224):
-        super(MIFSOD, self).__init__()
-        self.img_size = img_size
-        self.encoder = SwinTransformer(img_size=img_size, 
-                                           embed_dim=dim,
-                                           depths=[2,2,18,2],
-                                           num_heads=[3,6,12,24],
-                                           window_size=7)
+from multistage_fusion import decoder
+from multilevel_interaction import MultilevelInteractionBlock
+class M3Net(nn.Module):
+    r""" Multilevel, Mixed and Multistage Attention Network for Salient Object Detection. 
+    
+    Args:
+        embed_dim (int): Dimension for attention. Default 384
+        dim (int): Patch embedding dimension. Default 96
+        img_size (int): Input image size. Default 224
+        method (string): Backbone used as the encoder.
+    """
 
-        self.interact1 = MultiscaleInteractionBlock(dim=dim*4,dim1=dim*8,embed_dim=embed_dim,num_heads=4,mlp_ratio=3)
-        self.interact2 = MultiscaleInteractionBlock(dim=dim*2,dim1=dim*4,dim2=dim*8,embed_dim=embed_dim,num_heads=2,mlp_ratio=3)
-        self.interact3 = MultiscaleInteractionBlock(dim=dim,dim1=dim*2,dim2=dim*4,embed_dim=embed_dim,num_heads=1,mlp_ratio=3)
-        
+    def __init__(self,embed_dim=384,dim=96,img_size=224,method='Swin'):
+        super(M3Net, self).__init__()
+        self.img_size = img_size
+        if method == 'Swin':
+            self.encoder = SwinTransformer(img_size=img_size, 
+                                            embed_dim=dim,
+                                            depths=[2,2,18,2],
+                                            num_heads=[3,6,12,24],
+                                            window_size=7)
+        elif method == 'ResNet50':
+            self.encoder = ResNet()
+
+        self.interact1 = MultilevelInteractionBlock(dim=dim*4,dim1=dim*8,embed_dim=embed_dim,num_heads=4,mlp_ratio=3)
+        self.interact2 = MultilevelInteractionBlock(dim=dim*2,dim1=dim*4,dim2=dim*8,embed_dim=embed_dim,num_heads=2,mlp_ratio=3)
+        self.interact3 = MultilevelInteractionBlock(dim=dim,dim1=dim*2,dim2=dim*4,embed_dim=embed_dim,num_heads=1,mlp_ratio=3)
+
         self.decoder = decoder(embed_dim=embed_dim,dim=dim,img_size=img_size,mlp_ratio=1)
 
-
-
     def forward(self,x):
-        #print(x[0].shape)
         fea_1_4,fea_1_8,fea_1_16,fea_1_32 = self.encoder(x)
-        #B,_,_,_ = fea_1_4.shape
-        #print(fea_1_4.shape)
 
         fea_1_16_ = self.interact1(fea_1_16,fea_1_32)
         fea_1_8_ = self.interact2(fea_1_8,fea_1_16_,fea_1_32)
@@ -51,7 +57,8 @@ class MIFSOD(nn.Module):
 
 from thop import profile
 if __name__ == '__main__':
-    model = MIFSOD(embed_dim=384,dim=96,img_size=224)
+    # Test
+    model = M3Net(embed_dim=384,dim=96,img_size=224)
     model.cuda()
     
     f = torch.randn((1,3,224,224))

@@ -1,8 +1,16 @@
 import torch
 import torch.nn as nn
 from timm.models.layers import DropPath
-from Models.modules import WindowAttentionBlock,Block,mixattentionblock,SEBlock
+from Models.modules import MixedAttentionBlock
 class decoder(nn.Module):
+    r""" Multistage decoder. 
+    
+    Args:
+        embed_dim (int): Dimension for attention. Default 384
+        dim (int): Patch embedding dimension. Default 96
+        img_size (int): Input image size. Default 224
+        mlp_ratio (float): Ratio of mlp hidden dim to embedding dim.
+    """
     def __init__(self,embed_dim=384,dim=96,img_size=224,mlp_ratio=3):
         super(decoder, self).__init__()
         self.img_size = img_size
@@ -12,8 +20,8 @@ class decoder(nn.Module):
         self.fusion2 = multiscale_fusion(in_dim=dim*2,f_dim=dim,kernel_size=(3,3),img_size=(img_size//4,img_size//4),stride=(2,2),padding=(1,1))
         self.fusion3 = multiscale_fusion(in_dim=dim,f_dim=dim,kernel_size=(7,7),img_size=(img_size//1,img_size//1),stride=(4,4),padding=(2,2),fuse=False)
 
-        self.mixatt1 = mixattention(in_dim=dim*2,dim=embed_dim,img_size=(img_size//8,img_size//8),num_heads=1,mlp_ratio=mlp_ratio)
-        self.mixatt2 = mixattention(in_dim=dim,dim=embed_dim,img_size=(img_size//4,img_size//4),num_heads=1,mlp_ratio=mlp_ratio)
+        self.mixatt1 = MixedAttention(in_dim=dim*2,dim=embed_dim,img_size=(img_size//8,img_size//8),num_heads=1,mlp_ratio=mlp_ratio)
+        self.mixatt2 = MixedAttention(in_dim=dim,dim=embed_dim,img_size=(img_size//4,img_size//4),num_heads=1,mlp_ratio=mlp_ratio)
 
         self.proj1 = nn.Linear(dim*4,1)
         self.proj2 = nn.Linear(dim*2,1)
@@ -57,6 +65,17 @@ class decoder(nn.Module):
 
 
 class multiscale_fusion(nn.Module):
+    r""" Upsampling and feature fusion. 
+    
+    Args:
+        in_dim (int): Number of input feature channels.
+        f_dim (int): Number of fusion feature channels.
+        img_size (int): Image size after upsampling.
+        kernel_size (tuple(int)): The size of the sliding blocks.
+        stride (int): The stride of the sliding blocks in the input spatial dimensions, can be regarded as upsampling ratio. 
+        padding (int): Implicit zero padding to be added on both sides of input. 
+        fuse (bool): If True, concat features from different levels. 
+    """
     def __init__(self,in_dim,f_dim,kernel_size,img_size,stride,padding,fuse=True):
         super(multiscale_fusion, self).__init__()
         self.fuse = fuse
@@ -99,9 +118,19 @@ class multiscale_fusion(nn.Module):
         flops += N*self.f_dim*self.f_dim
         return flops
     
-class mixattention(nn.Module):
+class MixedAttention(nn.Module):
+    r""" Mixed Attention Module. 
+    
+    Args:
+        in_dim (int): Number of input feature channels.
+        dim (int): Number for attention. 
+        img_size (int): Image size after upsampling.
+        num_heads (int): Number of attention heads.
+        mlp_ratio (float): Ratio of mlp hidden dim to embedding dim.
+        depth (int): The number of MAB stacked.
+    """
     def __init__(self,in_dim,dim,img_size,num_heads=1,mlp_ratio=4,depth=2,drop_path = 0.):
-        super(mixattention, self).__init__()
+        super(MixedAttention, self).__init__()
 
         self.img_size = img_size
         self.in_dim = in_dim
@@ -113,7 +142,7 @@ class mixattention(nn.Module):
             nn.Linear(dim, dim),
         )
         self.blocks = nn.ModuleList([
-            mixattentionblock(dim=dim,img_size=img_size,num_heads=num_heads,mlp_ratio=mlp_ratio)
+            MixedAttentionBlock(dim=dim,img_size=img_size,num_heads=num_heads,mlp_ratio=mlp_ratio)
             for i in range(depth)])
         self.norm2 = nn.LayerNorm(dim)
         self.mlp2 = nn.Sequential(

@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from swin import window_partition,window_reverse,WindowAttention
 from timm.models.layers import DropPath, to_2tuple, trunc_normal_
 
 class Mlp(nn.Module):
@@ -74,51 +75,35 @@ class CrossAttention(nn.Module):
         self.dim2 = dim2
         self.scale = qk_scale or head_dim ** -0.5
 
-        self.rgb_q = nn.Linear(dim1, dim, bias=qkv_bias)
-        #self.rgb_k = nn.Linear(dim, dim, bias=qkv_bias)
-        #self.rgb_v = nn.Linear(dim, dim, bias=qkv_bias)
-        self.rgb_proj = nn.Linear(dim, dim1)
+        self.q1 = nn.Linear(dim1, dim, bias=qkv_bias)
+        self.proj = nn.Linear(dim, dim1)
 
-        #self.depth_q = nn.Linear(dim, dim, bias=qkv_bias)
-        self.depth_k = nn.Linear(dim2, dim, bias=qkv_bias)
-        self.depth_v = nn.Linear(dim2, dim, bias=qkv_bias)
-        #self.depth_proj = nn.Linear(dim, dim)
+        self.k2 = nn.Linear(dim2, dim, bias=qkv_bias)
+        self.v2 = nn.Linear(dim2, dim, bias=qkv_bias)
 
         self.attn_drop = nn.Dropout(attn_drop)
         self.proj_drop = nn.Dropout(proj_drop)
 
-    def forward(self, rgb_fea, depth_fea):
-        _, N1, _ = rgb_fea.shape
+    def forward(self, fea, depth_fea):
+        _, N1, _ = fea.shape
         B, N, _ = depth_fea.shape
         C = self.dim
-        rgb_q = self.rgb_q(rgb_fea).reshape(B, N1, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3)
-        #rgb_k = self.rgb_k(rgb_fea).reshape(B, N, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3)
-        #rgb_v = self.rgb_v(rgb_fea).reshape(B, N, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3)
+        q1 = self.q1(fea).reshape(B, N1, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3)
+
         # q [B, nhead, N, C//nhead]
 
-        #depth_q = self.depth_q(depth_fea).reshape(B, N, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3)
-        depth_k = self.depth_k(depth_fea).reshape(B, N, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3)
-        depth_v = self.depth_v(depth_fea).reshape(B, N, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3)
+        k2 = self.k2(depth_fea).reshape(B, N, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3)
+        v2 = self.v2(depth_fea).reshape(B, N, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3)
 
-        # rgb branch
-        rgb_attn = (rgb_q @ depth_k.transpose(-2, -1)) * self.scale
-        rgb_attn = rgb_attn.softmax(dim=-1)
-        rgb_attn = self.attn_drop(rgb_attn)
+        attn = (q1 @ k2.transpose(-2, -1)) * self.scale
+        attn = attn.softmax(dim=-1)
+        attn = self.attn_drop(attn)
 
-        rgb_fea = (rgb_attn @ depth_v).transpose(1, 2).reshape(B, N1, C)
-        rgb_fea = self.rgb_proj(rgb_fea)
-        rgb_fea = self.proj_drop(rgb_fea)
+        fea = (attn @ v2).transpose(1, 2).reshape(B, N1, C)
+        fea = self.proj(fea)
+        fea = self.proj_drop(fea)
 
-        # depth branch
-        #depth_attn = (depth_q @ rgb_k.transpose(-2, -1)) * self.scale
-        #depth_attn = depth_attn.softmax(dim=-1)
-        #depth_attn = self.attn_drop(depth_attn)
-
-        #depth_fea = (depth_attn @ rgb_v).transpose(1, 2).reshape(B, N, C)
-        #depth_fea = self.depth_proj(depth_fea)
-        #depth_fea = self.proj_drop(depth_fea)
-
-        return rgb_fea#, depth_fea
+        return fea
     def flops(self,N1,N2):
         flops = 0
         #q
@@ -134,7 +119,7 @@ class CrossAttention(nn.Module):
         return flops
 
 class Block(nn.Module):
-
+    # Remove FFN
     def __init__(self, dim, num_heads, mlp_ratio=4., qkv_bias=False, qk_scale=None, drop=0., attn_drop=0.,
                  drop_path=0., act_layer=nn.GELU, norm_layer=nn.LayerNorm):
         super().__init__()
@@ -158,210 +143,11 @@ class Block(nn.Module):
         #norm
         flops += self.dim*N
         return flops
-    
-'''
-class MutualSelfBlock(nn.Module):
-
-    def __init__(self, dim1,dim2, dim, num_heads, mlp_ratio=4., qkv_bias=False, qk_scale=None, drop=0., attn_drop=0.,
-                 drop_path=0., act_layer=nn.GELU, norm_layer=nn.LayerNorm):
-        super().__init__()
-
-        self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
-        mlp_hidden_dim = int(dim * mlp_ratio)
-
-        # mutual attention
-        self.norm1_rgb_ma = norm_layer(dim1)
-        self.norm2_depth_ma = norm_layer(dim2)
-        self.mutualAttn = MutualAttention(
-            dim1,dim2, dim, num_heads=num_heads, qkv_bias=qkv_bias, qk_scale=qk_scale, attn_drop=attn_drop, proj_drop=drop)
-        #self.norm3_rgb_ma = norm_layer(in_dim)
-        #self.norm4_depth_ma = norm_layer(dim)
-        #self.mlp_rgb_ma = Mlp(in_features=in_dim, hidden_features=mlp_hidden_dim, act_layer=act_layer, drop=drop)
-        #self.mlp_depth_ma = Mlp(in_features=dim, hidden_features=mlp_hidden_dim, act_layer=act_layer, drop=drop)
-
-        # rgb self attention
-        #self.norm1_rgb_sa = norm_layer(dim)
-        #self.selfAttn_rgb = Attention(
-        #    dim, num_heads=num_heads, qkv_bias=qkv_bias, qk_scale=qk_scale, attn_drop=attn_drop, proj_drop=drop)
-        #self.norm2_rgb_sa = norm_layer(dim)
-        #self.mlp_rgb_sa = Mlp(in_features=dim, hidden_features=mlp_hidden_dim, act_layer=act_layer, drop=drop)
-
-        # depth self attention
-        #self.norm1_depth_sa = norm_layer(dim)
-        #self.selfAttn_depth = Attention(
-        #    dim, num_heads=num_heads, qkv_bias=qkv_bias, qk_scale=qk_scale, attn_drop=attn_drop, proj_drop=drop)
-        #self.norm2_depth_sa = norm_layer(dim)
-        #self.mlp_depth_sa = Mlp(in_features=dim, hidden_features=mlp_hidden_dim, act_layer=act_layer, drop=drop)
-
-    def forward(self, rgb_fea, depth_fea):
-
-        # mutual attention
-        rgb_fea_fuse= self.drop_path(self.mutualAttn(self.norm1_rgb_ma(rgb_fea), self.norm2_depth_ma(depth_fea)))
-
-        rgb_fea = rgb_fea_fuse
-        #depth_fea = depth_fea + depth_fea_fuse
-
-        #rgb_fea = rgb_fea + self.drop_path(self.mlp_rgb_ma(self.norm3_rgb_ma(rgb_fea)))
-        #depth_fea = depth_fea + self.drop_path(self.mlp_depth_ma(self.norm4_depth_ma(depth_fea)))
-
-        # rgb self attention
-        #rgb_fea = rgb_fea + self.drop_path(self.selfAttn_rgb(self.norm1_rgb_sa(rgb_fea)))
-        #rgb_fea = rgb_fea + self.drop_path(self.mlp_rgb_sa(self.norm2_rgb_sa(rgb_fea)))
-
-        # depth self attention
-        #depth_fea = depth_fea + self.drop_path(self.selfAttn_depth(self.norm1_depth_sa(depth_fea)))
-        #depth_fea = depth_fea + self.drop_path(self.mlp_depth_sa(self.norm2_depth_sa(depth_fea)))
-
-        return rgb_fea#, depth_fea
-'''
-
-def window_partition(x, window_size):
-    """
-    Args:
-        x: (B, H, W, C)
-        window_size (int): window size
-
-    Returns:
-        windows: (num_windows*B, window_size, window_size, C)
-    """
-    B, H, W, C = x.shape
-    x = x.view(B, H // window_size, window_size, W // window_size, window_size, C)
-    windows = x.permute(0, 1, 3, 2, 4, 5).contiguous().view(-1, window_size, window_size, C)
-    return windows
 
 
-def window_reverse(windows, window_size, H, W):
-    """
-    Args:
-        windows: (num_windows*B, window_size, window_size, C)
-        window_size (int): Window size
-        H (int): Height of image
-        W (int): Width of image
-
-    Returns:
-        x: (B, H, W, C)
-    """
-    B = int(windows.shape[0] / (H * W / window_size / window_size))
-    x = windows.view(B, H // window_size, W // window_size, window_size, window_size, -1)
-    x = x.permute(0, 1, 3, 2, 4, 5).contiguous().view(B, H, W, -1)
-    return x
-
-
-class WindowAttention(nn.Module):
-    r""" Window based multi-head self attention (W-MSA) module with relative position bias.
-    It supports both of shifted and non-shifted window.
-
-    Args:
-        dim (int): Number of input channels.
-        window_size (tuple[int]): The height and width of the window.
-        num_heads (int): Number of attention heads.
-        qkv_bias (bool, optional):  If True, add a learnable bias to query, key, value. Default: True
-        qk_scale (float | None, optional): Override default qk scale of head_dim ** -0.5 if set
-        attn_drop (float, optional): Dropout ratio of attention weight. Default: 0.0
-        proj_drop (float, optional): Dropout ratio of output. Default: 0.0
-    """
-
-    def __init__(self, dim, window_size, num_heads, qkv_bias=True, qk_scale=None, attn_drop=0., proj_drop=0.):
-
-        super().__init__()
-        self.dim = dim
-        self.window_size = window_size  # Wh, Ww
-        self.num_heads = num_heads
-        head_dim = dim // num_heads
-        self.scale = qk_scale or head_dim ** -0.5
-
-        # define a parameter table of relative position bias
-        self.relative_position_bias_table = nn.Parameter(
-            torch.zeros((2 * window_size[0] - 1) * (2 * window_size[1] - 1), num_heads))  # 2*Wh-1 * 2*Ww-1, nH
-
-        # get pair-wise relative position index for each token inside the window
-        coords_h = torch.arange(self.window_size[0])
-        coords_w = torch.arange(self.window_size[1])
-        coords = torch.stack(torch.meshgrid([coords_h, coords_w]))  # 2, Wh, Ww
-        coords_flatten = torch.flatten(coords, 1)  # 2, Wh*Ww
-        relative_coords = coords_flatten[:, :, None] - coords_flatten[:, None, :]  # 2, Wh*Ww, Wh*Ww
-        relative_coords = relative_coords.permute(1, 2, 0).contiguous()  # Wh*Ww, Wh*Ww, 2
-        relative_coords[:, :, 0] += self.window_size[0] - 1  # shift to start from 0
-        relative_coords[:, :, 1] += self.window_size[1] - 1
-        relative_coords[:, :, 0] *= 2 * self.window_size[1] - 1
-        relative_position_index = relative_coords.sum(-1)  # Wh*Ww, Wh*Ww
-        self.register_buffer("relative_position_index", relative_position_index)
-
-        self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
-        self.attn_drop = nn.Dropout(attn_drop)
-        self.proj = nn.Linear(dim, dim)
-        self.proj_drop = nn.Dropout(proj_drop)
-
-        trunc_normal_(self.relative_position_bias_table, std=.02)
-        self.softmax = nn.Softmax(dim=-1)
-
-    def forward(self, x, mask=None):
-        """
-        Args:
-            x: input features with shape of (num_windows*B, N, C)
-            mask: (0/-inf) mask with shape of (num_windows, Wh*Ww, Wh*Ww) or None
-        """
-        B_, N, C = x.shape
-        qkv = self.qkv(x).reshape(B_, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
-        q, k, v = qkv[0], qkv[1], qkv[2]  # make torchscript happy (cannot use tensor as tuple)
-
-        q = q * self.scale
-        attn = (q @ k.transpose(-2, -1))
-
-        relative_position_bias = self.relative_position_bias_table[self.relative_position_index.view(-1)].view(
-            self.window_size[0] * self.window_size[1], self.window_size[0] * self.window_size[1], -1)  # Wh*Ww,Wh*Ww,nH
-        relative_position_bias = relative_position_bias.permute(2, 0, 1).contiguous()  # nH, Wh*Ww, Wh*Ww
-        attn = attn + relative_position_bias.unsqueeze(0)
-
-        if mask is not None:
-            nW = mask.shape[0]
-            attn = attn.view(B_ // nW, nW, self.num_heads, N, N) + mask.unsqueeze(1).unsqueeze(0)
-            attn = attn.view(-1, self.num_heads, N, N)
-            attn = self.softmax(attn)
-        else:
-            attn = self.softmax(attn)
-
-        attn = self.attn_drop(attn)
-
-        x = (attn @ v).transpose(1, 2).reshape(B_, N, C)
-        x = self.proj(x)
-        x = self.proj_drop(x)
-        return x
-
-    def extra_repr(self) -> str:
-        return f'dim={self.dim}, window_size={self.window_size}, num_heads={self.num_heads}'
-
-    def flops(self, N):
-        # calculate flops for 1 window with token length of N
-        flops = 0
-        # qkv = self.qkv(x)
-        flops += N * self.dim * 3 * self.dim
-        # attn = (q @ k.transpose(-2, -1))
-        flops += self.num_heads * N * (self.dim // self.num_heads) * N
-        #  x = (attn @ v)
-        flops += self.num_heads * N * N * (self.dim // self.num_heads)
-        # x = self.proj(x)
-        flops += N * self.dim * self.dim
-        return flops
 
 class WindowAttentionBlock(nn.Module):
-    r""" Swin Transformer Block.
-
-    Args:
-        dim (int): Number of input channels.
-        input_resolution (tuple[int]): Input resulotion.
-        num_heads (int): Number of attention heads.
-        window_size (int): Window size.
-        shift_size (int): Shift size for SW-MSA.
-        mlp_ratio (float): Ratio of mlp hidden dim to embedding dim.
-        qkv_bias (bool, optional): If True, add a learnable bias to query, key, value. Default: True
-        qk_scale (float | None, optional): Override default qk scale of head_dim ** -0.5 if set.
-        drop (float, optional): Dropout rate. Default: 0.0
-        attn_drop (float, optional): Attention dropout rate. Default: 0.0
-        drop_path (float, optional): Stochastic depth rate. Default: 0.0
-        act_layer (nn.Module, optional): Activation layer. Default: nn.GELU
-        norm_layer (nn.Module, optional): Normalization layer.  Default: nn.LayerNorm
-        fused_window_process (bool, optional): If True, use one kernel to fused window shift & window partition for acceleration, similar for the reversed part. Default: False
+    r""" Based on Swin Transformer Block, We remove FFN. 
     """
 
     def __init__(self, dim, input_resolution, num_heads, window_size=7, shift_size=0,
@@ -477,30 +263,21 @@ class WindowAttentionBlock(nn.Module):
         flops += self.dim * H * W
         return flops
 
-class mixattentionblock(nn.Module):
+class MixedAttentionBlock(nn.Module):
     def __init__(self,dim,img_size,num_heads=1,mlp_ratio=3,drop_path = 0.):
-        super(mixattentionblock, self).__init__()
+        super(MixedAttentionBlock, self).__init__()
 
         self.img_size = img_size
         self.dim = dim
         self.mlp_ratio = mlp_ratio
-        #self.norm1 = nn.LayerNorm(dim)
-        #self.mlp1 = nn.Sequential(
-        #    nn.Linear(dim, dim),
-        #    nn.GELU(),
-        #    nn.Linear(dim, dim),
-        #)
+
         self.windowatt = WindowAttentionBlock(dim=dim,input_resolution=img_size,num_heads=num_heads,window_size=7, shift_size=0,
                  mlp_ratio=mlp_ratio, qkv_bias=True, qk_scale=None, drop=0., attn_drop=0., drop_path=0.,
                  act_layer=nn.GELU, norm_layer=nn.LayerNorm,
                  fused_window_process=False)
         self.globalatt = Block(dim=dim,num_heads=num_heads,mlp_ratio=mlp_ratio, qkv_bias=False, qk_scale=None, drop=0., attn_drop=0.,
                  drop_path=0., act_layer=nn.GELU, norm_layer=nn.LayerNorm)
-        #self.concatfuse = nn.Sequential(
-        #    nn.Linear(dim*2, dim),
-        #    nn.GELU(),
-        #    nn.Linear(dim, dim),
-        #)
+
         self.norm = nn.LayerNorm(dim)
         self.mlp = nn.Sequential(
             nn.Linear(dim, dim*mlp_ratio),

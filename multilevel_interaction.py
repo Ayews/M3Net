@@ -2,9 +2,19 @@ import torch
 import torch.nn as nn
 from timm.models.layers import DropPath
 from Models.modules import CrossAttention
-class MultiscaleInteractionBlock(nn.Module):
+class MultilevelInteractionBlock(nn.Module):
+    r""" Multilevel Interaction Block. 
+    
+    Args:
+        dim (int): Number of low-level feature channels.
+        dim1, dim2 (int): Number of high-level feature channels.
+        embed_dim (int): Dimension for attention.
+        num_heads (int): Number of attention heads.
+        mlp_ratio (float): Ratio of mlp hidden dim to embedding dim.
+    """
+    
     def __init__(self,dim,dim1,dim2=None,embed_dim = 384,num_heads = 6,mlp_ratio = 3., qkv_bias = False, qk_scale = None,drop = 0.,attn_drop = 0.,drop_path = 0.,act_layer=nn.GELU, norm_layer=nn.LayerNorm):
-        super(MultiscaleInteractionBlock, self).__init__()
+        super(MultilevelInteractionBlock, self).__init__()
         self.interact1 = CrossAttention(dim1 = dim,dim2 = dim1,dim = embed_dim,num_heads=num_heads,qkv_bias=qkv_bias,qk_scale=qk_scale,attn_drop=attn_drop,proj_drop=drop)
         self.norm0 = norm_layer(dim)
         self.norm1 = norm_layer(dim1)
@@ -47,7 +57,8 @@ class MultiscaleInteractionBlock(nn.Module):
         return flops
         
 if __name__ == '__main__':
-    model = MultiscaleInteractionBlock(dim1=96,dim2=192,dim3=384)
+    # Test
+    model = MultilevelInteractionBlock(dim1=96,dim2=192,dim3=384)
     model.cuda()
     f = []
     f.append(torch.randn((1,3136,96)).cuda())
