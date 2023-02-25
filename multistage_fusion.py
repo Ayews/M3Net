@@ -179,6 +179,7 @@ class MixedAttention(nn.Module):
 
 
 if __name__ == '__main__':
+    # Test
     model = decoder(embed_dim=384,dim=96,img_size=224)
     model.cuda()
     f = []

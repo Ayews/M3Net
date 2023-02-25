@@ -301,18 +301,3 @@ class MixedAttentionBlock(nn.Module):
         flops += 2*N*self.dim*self.dim*self.mlp_ratio
         return flops
 
-class SEBlock(nn.Module):
-    def __init__(self, dim, r):
-        super(SEBlock, self).__init__()
-        self.se = nn.Sequential(
-            nn.Linear(dim,dim//r),
-            nn.GELU(),
-            nn.Linear(dim//r,dim)
-        )
-    def forward(self, fea):
-        _,shape,_ = fea.shape
-        z = fea.transpose(1,2)
-        z = F.avg_pool1d(z,shape).transpose(1,2)
-        s = self.se(z)
-        s = torch.sigmoid(s)
-        return s*fea

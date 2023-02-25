@@ -1,13 +1,6 @@
-import threading
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
 from tqdm import tqdm
-#from torch.utils.tensorboard import SummaryWriter
-from torch.autograd import Variable
-from eval_during_train import get_pred_dir#,eval
-import os
 from M3Net import M3Net
 from dataloader import get_loader
 # IoU Loss
@@ -93,8 +86,6 @@ def fit(model, train_dl, epochs=[100,20], lr=1e-4):
             #model.train()
             loss = train_one_epoch(epoch,epochs[st],model,opt,train_dl)
         lr = lr/5
-        #torch.save(model.state_dict(),"save/tmp/"+str(sum(epochs[:st+1]))+'.pth')
-    #torch.save(model.state_dict(),"save/"+method+str(sum(epochs[:step+1]))+'.pth')
 
 def get_opt(lr,model):
     
@@ -122,6 +113,3 @@ def training(args):
     model.train()
     fit(model,train_dl,[args.step1epochs,args.step2epochs],args.lr)
     torch.save(model.state_dict(), args.save_model+args.method+'.pth')
-
-#def eval():
-#    os.system('python eval/eval.py --method-json eval/examples/config_method_json_during_train.json --dataset-json eval/examples/config_dataset_json_during_train.json --record-txt results/r0.txt')

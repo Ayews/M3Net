@@ -31,3 +31,4 @@ datasets/HKU-IS/imgs/*
 datasets/PASCAL-S/imgs/*
 datasets/SOD/imgs/*
 eval_during_train.py
+Models/icon
