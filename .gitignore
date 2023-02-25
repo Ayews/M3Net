@@ -13,7 +13,6 @@ ImageDepthNet.py
 *.pyc
 *.png
 Multilevel features.py
-eval_during_train.py
 transforms.py
 multiscale_interference.py
 pretrained_model/*
@@ -31,3 +30,4 @@ datasets/ECSSD/imgs/*
 datasets/HKU-IS/imgs/*
 datasets/PASCAL-S/imgs/*
 datasets/SOD/imgs/*
+eval_during_train.py
