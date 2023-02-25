@@ -18,18 +18,10 @@ import transforms as trans
 #from icon import ICON
 from tqdm import tqdm
 #from branch import branch
-from multiscale_fusion_sod import MIFSOD
-def get_pred_dir(model, data_root = '/home/yy/datasets/'):
+from M3Net import M3Net
+def get_pred_dir(model, data_root = '/home/yy/datasets/', save_path = 'preds/',methods = 'DUTS/DUTS-TE+DUT-O+ECSSD+HKU-IS+PASCAL-S+SOD'):
     batch_size = 1
-    test_paths = [
-        'DUT-O',
-        'DUTS',
-        'ECSSD',
-        'HKU-IS',
-        'PASCAL-S',
-        #'MSRA10K',
-        'SOD',
-    ]
+    test_paths = methods.split('+')
     for dataset_setname in test_paths:
         #print('get '+dataset_setname)
         if dataset_setname == 'DUTS':
@@ -60,7 +52,7 @@ def get_pred_dir(model, data_root = '/home/yy/datasets/'):
                 trans.Scale((image_w, image_h))
             ])
             #output_s = output_s.data.cpu().squeeze(0)
-            thread = threading.Thread(target = save_p,args = (output_s.shape[0],output_s,image_w,image_h,image_path,dataset_setname))
+            thread = threading.Thread(target = save_p,args = (output_s.shape[0],output_s,image_w,image_h,image_path,dataset_setname,save_path))
             thread.start()
         '''
         img_files = os.listdir(img_root)
@@ -75,7 +67,7 @@ def get_pred_dir(model, data_root = '/home/yy/datasets/'):
             cv2.imwrite("Evaluation/sals/"+dataset_setname+'/'+i[:-4]+'.png',imgs)
         '''
 
-def save_p(size,outputs,image_w,image_h,image_path,dataset_setname):
+def save_p(size,outputs,image_w,image_h,image_path,dataset_setname,save_path):
     transform = trans.Compose([
                 transforms.ToPILImage(),
                 trans.Scale((image_w, image_h))
@@ -89,35 +81,14 @@ def save_p(size,outputs,image_w,image_h,image_path,dataset_setname):
         filename = image_path[ii].split('/')[-1].split('.')[0]
 
         # save saliency maps
-        save_test_path = 'preds/'+dataset_setname+'/'
+        save_test_path = save_path+dataset_setname+'/'
         if not os.path.exists(save_test_path):
             os.makedirs(save_test_path)
         output_si.save(os.path.join(save_test_path, filename + '.png'))
 
-
-
-parser = argparse.ArgumentParser()
-# ICON-V: VGG16, ICON-R: ResNet50, ICON-S: Swin, ICON-P: PVTv2, CycleMLP: B4
-parser.add_argument("--model", default='ICON-C')
-# DUTS for Saliency, COD10K for Camouflaged, SOC for Attributes. 
-parser.add_argument("--dataset", default='../datasets/DUTS/Train')
-parser.add_argument("--lr", type=float, default=0.05)
-parser.add_argument("--momen", type=float, default=0.9)  
-parser.add_argument("--decay", type=float, default=1e-4)  
-parser.add_argument("--batchsize", type=int, default=14)  
-parser.add_argument("--epoch", type=int, default=60)  
-# CPR: IoU+BCE, STR: Structure Loss, FL: F-measure loss
-parser.add_argument("--loss", default='CPR')  
-parser.add_argument("--savepath", default='../checkpoint/ICON/ICON-C')  
-parser.add_argument("--valid", default=True)  
-#train(dataset, parser)
-
-args = parser.parse_args(args=[])
-
-#model = ICON(args, model_name='ICON-S')
-#model = branch()
-model = MIFSOD(embed_dim=384,dim=96,img_size=224)
-model.cuda()
-model.load_state_dict(torch.load('savepth/multiscale_fusion_sod_baseline_cpr100.pth'))
-model.eval()
-get_pred_dir(model)
+def testing(args):
+    model = M3Net(embed_dim=384,dim=96,img_size=224,method=args.method)
+    model.cuda()
+    model.load_state_dict(torch.load(args.save_model+args.method+'.pth'))
+    model.eval()
+    get_pred_dir(model,data_root=args.data_root,save_path=args.save_test,methods=args.test_methods)

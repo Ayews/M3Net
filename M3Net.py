@@ -15,16 +15,16 @@ class M3Net(nn.Module):
         method (string): Backbone used as the encoder.
     """
 
-    def __init__(self,embed_dim=384,dim=96,img_size=224,method='Swin'):
+    def __init__(self,embed_dim=384,dim=96,img_size=224,method='M3Net-S'):
         super(M3Net, self).__init__()
         self.img_size = img_size
-        if method == 'Swin':
+        if method == 'M3Net-S':
             self.encoder = SwinTransformer(img_size=img_size, 
                                             embed_dim=dim,
                                             depths=[2,2,18,2],
                                             num_heads=[3,6,12,24],
                                             window_size=7)
-        elif method == 'ResNet50':
+        elif method == 'M3Net-R':
             self.encoder = ResNet()
 
         self.interact1 = MultilevelInteractionBlock(dim=dim*4,dim1=dim*8,embed_dim=embed_dim,num_heads=4,mlp_ratio=3)

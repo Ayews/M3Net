@@ -10,7 +10,7 @@ from torch.utils import data
 #from Models.t2t_vit import T2t_vit_t_14
 from train import *
 from Models.swin import *
-from multiscale_fusion_sod import MIFSOD
+from M3Net import M3Net
 
 #from ImageDepthNet import ImageDepthNet
 parser = argparse.ArgumentParser()
@@ -34,7 +34,7 @@ parser.add_argument("--valid", default=True)
 args = parser.parse_args(args=[])
 
 #model = ICON(args, model_name='ICON-S')
-model = MIFSOD(embed_dim=384,dim=96,img_size=224)
+model = M3Net(embed_dim=384,dim=96,img_size=224,method='Swin')
 model.cuda()
 
 import cv2
@@ -42,7 +42,7 @@ import cv2
 #img = cv2.cvtColor(cv2.resize((cv2.imread('/mnt/disk2/dataset/MSRA10K/imgs/75.jpg')),(224,224)), cv2.COLOR_RGB2BGR)*1.0/255
 #writer.add_graph(model, torch.from_numpy(np.asarray(img).astype(np.float32).transpose(2,0,1)).view(-1, 3, 224, 224).cuda())
 
-model.encoder.load_state_dict(torch.load('/home/yy/pretrained_model/swin_small_patch4_window7_224.pth')['model'])
+model.encoder.load_state_dict(torch.load('./pretrained_model/swin_small_patch4_window7_224.pth')['model'])
 #model.encoder.load_state_dict(torch.load('/home/yy/pretrained_model/T2T_ViTt_14.pth.tar')['state_dict_ema'])
 #pretrained_dict = torch.load('/home/yy/pretrained_model/resnet50.pth')
 #pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model.encoder.state_dict()}
@@ -66,9 +66,9 @@ method = 'multiscale_fusion_sod_baseline_cpr'
 #f = 'lossA2.txt'
 #step 1
 lr = 0.0001
-fit(100,model,lr,train_dl,method)
+fit(model,train_dl,lr,100)
 torch.save(model.state_dict(), 'savepth/'+method+'100.pth')
 lr = 0.00002
-fit(20,model,lr,train_dl,method)
+fit(model,train_dl,lr,20)
 torch.save(model.state_dict(), 'savepth/'+method+'120.pth')
 #writer.close()

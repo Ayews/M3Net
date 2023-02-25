@@ -8,6 +8,8 @@ from tqdm import tqdm
 from torch.autograd import Variable
 from eval_during_train import get_pred_dir#,eval
 import os
+from M3Net import M3Net
+from dataloader import get_loader
 # IoU Loss
 def iou_loss(pred, mask):
     pred  = torch.sigmoid(pred)
@@ -57,10 +59,8 @@ def train_one_epoch(epoch,epochs,model,opt,train_dl):
 
         l = l+1
 
-        images, label_224, label_1_16, label_1_8, label_1_4 = data_batch
-
-        images, label_224, = images.cuda(non_blocking=True), label_224.cuda(non_blocking=True)
-
+        images, label, label_1_16, label_1_8, label_1_4 = data_batch
+        images, label = images.cuda(non_blocking=True), label.cuda(non_blocking=True)
         label_1_16, label_1_8, label_1_4 = label_1_16.cuda(), label_1_8.cuda(), label_1_4.cuda()
 
         out2, out3, out4, out5 = model(images)
@@ -68,7 +68,7 @@ def train_one_epoch(epoch,epochs,model,opt,train_dl):
         loss4  = F.binary_cross_entropy_with_logits(out2, label_1_16) + iou_loss(out2, label_1_16)
         loss3  = F.binary_cross_entropy_with_logits(out3, label_1_8) + iou_loss(out3, label_1_8)
         loss2  = F.binary_cross_entropy_with_logits(out4, label_1_4) + iou_loss(out4, label_1_4)
-        loss1  = F.binary_cross_entropy_with_logits(out5, label_224) + iou_loss(out5, label_224)
+        loss1  = F.binary_cross_entropy_with_logits(out5, label) + iou_loss(out5, label)
 
         loss = loss_weights[0] * loss1 + loss_weights[1] * loss2 + loss_weights[2] * loss3 + loss_weights[3] * loss4
 
@@ -85,31 +85,14 @@ def train_one_epoch(epoch,epochs,model,opt,train_dl):
         progress_bar.set_postfix(loss=f'{epoch_loss1/(i+1):.3f}')
     return epoch_loss1/l
         
-def fit(epochs, model, lr, train_dl, method):
-    #progress_bar = tqdm(range(epochs))#,desc='Epoch[{:03d}/{:03d}]'.format(epochs, 40))
-    #f = 'loss.txt'
-
-    opt = get_opt(lr,model)
-
-    for epoch in range(epochs):
-
-        model.train()
-        loss = train_one_epoch(epoch,epochs,model,opt,train_dl)
-
-        #with open(f, 'a') as fe:
-            #fe.write(str(sum(epochs[:st])+epoch+1)+'\t{loss:.3f}\n'.format(loss = loss))
-                            # fe.write(str(sum(epochs[:st])+epoch+1)+'\t{loss1:.3f}\t{loss2:.3f}\t{loss3:.3f}\t{loss4:.3f}\t{lossp:.3f}\n'.format(loss1 = loss[0],loss2 = loss[1],loss3 = loss[2],loss4 = loss[3],lossp = loss[4]))
-
-        #writer.add_scalar('Loss/train', loss, sum(epochs[:st])+epoch+1)
-
-        '''
-        if epoch % 20 == 19:
-            torch.save(model.state_dict(),"savepth/tmp/"+str(sum(epochs[:st])+epoch+1))
-            get_pred_dir(model)
-            thread = threading.Thread(target = eval)
-            thread.start()
-        '''
-
+def fit(model, train_dl, epochs=[100,20], lr=1e-4):
+    step = len(epochs)
+    for st in range(step):
+        opt = get_opt(lr,model)
+        for epoch in range(epochs[st]):
+            #model.train()
+            loss = train_one_epoch(epoch,epochs[st],model,opt,train_dl)
+        lr = lr/5
         #torch.save(model.state_dict(),"save/tmp/"+str(sum(epochs[:st+1]))+'.pth')
     #torch.save(model.state_dict(),"save/"+method+str(sum(epochs[:step+1]))+'.pth')
 
@@ -125,5 +108,20 @@ def get_opt(lr,model):
 
     return opt
 
-def eval():
-    os.system('python eval/eval.py --method-json eval/examples/config_method_json_during_train.json --dataset-json eval/examples/config_dataset_json_during_train.json --record-txt results/r0.txt')
+def training(args):
+    model = M3Net(embed_dim=384,dim=96,img_size=224,method=args.method)
+    model.cuda()
+    if args.method == 'M3Net-S':
+        model.encoder.load_state_dict(torch.load('./pretrained_model/swin_small_patch4_window7_224.pth')['model'])
+    elif args.method == 'M3Net-R':
+        model.encoder.load_state_dict(torch.load('./pretrained_model/ResNet50.pth'))
+    train_dataset = get_loader('DUTS/DUTS-TR', args.data_root, 224, mode='train')
+    train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=8, shuffle = True, 
+                                               pin_memory=True,num_workers = 4
+                                               )
+    model.train()
+    fit(model,train_dl,[args.step1epochs,args.step2epochs],args.lr)
+    torch.save(model.state_dict(), args.save_model+args.method+'.pth')
+
+#def eval():
+#    os.system('python eval/eval.py --method-json eval/examples/config_method_json_during_train.json --dataset-json eval/examples/config_dataset_json_during_train.json --record-txt results/r0.txt')
