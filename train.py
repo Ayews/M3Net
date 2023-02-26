@@ -89,8 +89,9 @@ def fit(model, train_dl, epochs=[100,20], lr=1e-4):
             #model.train()
             loss = train_one_epoch(epoch,epochs[st],model,opt,train_dl)
             fh = open(save_dir, 'a')
-            fh.write(str(epoch) + ' epoch_loss: ' + loss + '\n')
-            fh.write('\n')
+            if(epoch == 0):
+                fh.write('Step: ' + str(st+1) + '\n')
+            fh.write(str(epoch+1) + ' epoch_loss: ' + str(loss) + '\n')
             fh.close()
         lr = lr/5
 
