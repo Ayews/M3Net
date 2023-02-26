@@ -80,11 +80,18 @@ def train_one_epoch(epoch,epochs,model,opt,train_dl):
         
 def fit(model, train_dl, epochs=[100,20], lr=1e-4):
     step = len(epochs)
+    save_dir = './loss.txt'
     for st in range(step):
         opt = get_opt(lr,model)
+        print('Starting train step {}.'.format(st+1))
+        print('lr: '+str(lr))
         for epoch in range(epochs[st]):
             #model.train()
             loss = train_one_epoch(epoch,epochs[st],model,opt,train_dl)
+            fh = open(save_dir, 'a')
+            fh.write(str(epoch) + ' epoch_loss: ' + loss + '\n')
+            fh.write('\n')
+            fh.close()
         lr = lr/5
 
 def get_opt(lr,model):
@@ -100,16 +107,23 @@ def get_opt(lr,model):
     return opt
 
 def training(args):
-    model = M3Net(embed_dim=384,dim=96,img_size=224,method=args.method)
-    model.cuda()
     if args.method == 'M3Net-S':
+        model = M3Net(embed_dim=384,dim=96,img_size=224,method=args.method)
         model.encoder.load_state_dict(torch.load('./pretrained_model/swin_small_patch4_window7_224.pth')['model'])
     elif args.method == 'M3Net-R':
+        model = M3Net(embed_dim=384,dim=96,img_size=224,method=args.method)
         model.encoder.load_state_dict(torch.load('./pretrained_model/ResNet50.pth'))
+    elif args.method == 'M3Net-T':
+        model = M3Net(embed_dim=384,dim=64,img_size=224,method=args.method)
+        model.encoder.load_state_dict(torch.load('/pretrained_model/T2T_ViTt_14.pth.tar')['state_dict_ema'])
+    
     train_dataset = get_loader('DUTS/DUTS-TR', args.data_root, 224, mode='train')
     train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=8, shuffle = True, 
                                                pin_memory=True,num_workers = 4
                                                )
+    model.cuda()
     model.train()
+    print('Starting train.')
     fit(model,train_dl,[args.step1epochs,args.step2epochs],args.lr)
     torch.save(model.state_dict(), args.save_model+args.method+'.pth')
+    print('Saved at '+args.save_model+args.method+'.pth.')

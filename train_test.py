@@ -1,5 +1,3 @@
-import os
-import torch
 from train import training
 from test import testing
 import argparse
@@ -8,7 +6,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     # train
-    parser.add_argument('--train', default=False, type=bool, help='Training or not')
+    parser.add_argument('--train', default=False, type=bool, help='Train or not')
     parser.add_argument('--data_root', default='./datasets/', type=str, help='data path')
     parser.add_argument('--train_epochs', default=120, type=int, help='total training epochs')
     parser.add_argument('--img_size', default=224, type=int, help='network input size')
@@ -22,9 +20,9 @@ if __name__ == "__main__":
     parser.add_argument('--save_model', default='savepth/', type=str, help='save model path')
 
     # test
-    parser.add_argument('--test', default=False, type=bool, help='Testing or not')
+    parser.add_argument('--test', default=False, type=bool, help='Test or not')
     parser.add_argument('--save_test', default='preds/', type=str, help='save saliency maps path')
-    parser.add_argument('--test_methods', type=str, default='DUTS/DUTS-TE+DUT-O+ECSSD+HKU-IS+PASCAL-S+SOD')
+    parser.add_argument('--test_methods', type=str, default='DUTS+DUT-O+ECSSD+HKU-IS+PASCAL-S+SOD')
 
     args = parser.parse_args()
 

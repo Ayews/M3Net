@@ -11,22 +11,22 @@ class decoder(nn.Module):
         img_size (int): Input image size. Default 224
         mlp_ratio (float): Ratio of mlp hidden dim to embedding dim.
     """
-    def __init__(self,embed_dim=384,dim=96,img_size=224,mlp_ratio=3):
+    def __init__(self,embed_dim=384,dims=[96,192,384],img_size=224,mlp_ratio=3):
         super(decoder, self).__init__()
         self.img_size = img_size
-        self.dim = dim
+        #self.dim = dim
         self.embed_dim = embed_dim
-        self.fusion1 = multiscale_fusion(in_dim=dim*4,f_dim=dim*2,kernel_size=(3,3),img_size=(img_size//8,img_size//8),stride=(2,2),padding=(1,1))
-        self.fusion2 = multiscale_fusion(in_dim=dim*2,f_dim=dim,kernel_size=(3,3),img_size=(img_size//4,img_size//4),stride=(2,2),padding=(1,1))
-        self.fusion3 = multiscale_fusion(in_dim=dim,f_dim=dim,kernel_size=(7,7),img_size=(img_size//1,img_size//1),stride=(4,4),padding=(2,2),fuse=False)
+        self.fusion1 = multiscale_fusion(in_dim=dims[2],f_dim=dims[1],kernel_size=(3,3),img_size=(img_size//8,img_size//8),stride=(2,2),padding=(1,1))
+        self.fusion2 = multiscale_fusion(in_dim=dims[1],f_dim=dims[0],kernel_size=(3,3),img_size=(img_size//4,img_size//4),stride=(2,2),padding=(1,1))
+        self.fusion3 = multiscale_fusion(in_dim=dims[0],f_dim=dims[0],kernel_size=(7,7),img_size=(img_size//1,img_size//1),stride=(4,4),padding=(2,2),fuse=False)
 
-        self.mixatt1 = MixedAttention(in_dim=dim*2,dim=embed_dim,img_size=(img_size//8,img_size//8),num_heads=1,mlp_ratio=mlp_ratio)
-        self.mixatt2 = MixedAttention(in_dim=dim,dim=embed_dim,img_size=(img_size//4,img_size//4),num_heads=1,mlp_ratio=mlp_ratio)
+        self.mixatt1 = MixedAttention(in_dim=dims[1],dim=embed_dim,img_size=(img_size//8,img_size//8),num_heads=1,mlp_ratio=mlp_ratio,depth=2)
+        self.mixatt2 = MixedAttention(in_dim=dims[0],dim=embed_dim,img_size=(img_size//4,img_size//4),num_heads=1,mlp_ratio=mlp_ratio,depth=2)
 
-        self.proj1 = nn.Linear(dim*4,1)
-        self.proj2 = nn.Linear(dim*2,1)
-        self.proj3 = nn.Linear(dim,1)
-        self.proj4 = nn.Linear(dim,1)
+        self.proj1 = nn.Linear(dims[2],1)
+        self.proj2 = nn.Linear(dims[1],1)
+        self.proj3 = nn.Linear(dims[0],1)
+        self.proj4 = nn.Linear(dims[0],1)
 
 
 

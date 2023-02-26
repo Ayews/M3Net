@@ -19,7 +19,7 @@ import transforms as trans
 from tqdm import tqdm
 #from branch import branch
 from M3Net import M3Net
-def get_pred_dir(model, data_root = '/home/yy/datasets/', save_path = 'preds/',methods = 'DUTS/DUTS-TE+DUT-O+ECSSD+HKU-IS+PASCAL-S+SOD'):
+def get_pred_dir(model, data_root = '/home/yy/datasets/', save_path = 'preds/',methods = 'DUTS+DUT-O+ECSSD+HKU-IS+PASCAL-S+SOD'):
     batch_size = 1
     test_paths = methods.split('+')
     for dataset_setname in test_paths:
@@ -90,5 +90,7 @@ def testing(args):
     model = M3Net(embed_dim=384,dim=96,img_size=224,method=args.method)
     model.cuda()
     model.load_state_dict(torch.load(args.save_model+args.method+'.pth'))
+    print('Loaded from'+args.save_model+args.method+'.pth.')
     model.eval()
     get_pred_dir(model,data_root=args.data_root,save_path=args.save_test,methods=args.test_methods)
+    print('Predictions are saved at '+args.save_test+'.')
