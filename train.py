@@ -90,7 +90,7 @@ def fit(model, train_dl, epochs=[100,20], lr=1e-4):
             loss = train_one_epoch(epoch,epochs[st],model,opt,train_dl)
             fh = open(save_dir, 'a')
             if(epoch == 0):
-                fh.write('Step: ' + str(st+1) + '\n')
+                fh.write('Step: ' + str(st+1) + ', currelt lr: ' + str(lr) + '\n')
             fh.write(str(epoch+1) + ' epoch_loss: ' + str(loss) + '\n')
             fh.close()
         lr = lr/5
@@ -117,11 +117,13 @@ def training(args):
     elif args.method == 'M3Net-T':
         model = M3Net(embed_dim=384,dim=64,img_size=224,method=args.method)
         model.encoder.load_state_dict(torch.load('/pretrained_model/T2T_ViTt_14.pth.tar')['state_dict_ema'])
-    
+    print('Pre-trained weight loaded.')
+
     train_dataset = get_loader('DUTS/DUTS-TR', args.data_root, 224, mode='train')
     train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=8, shuffle = True, 
                                                pin_memory=True,num_workers = 4
                                                )
+    
     model.cuda()
     model.train()
     print('Starting train.')

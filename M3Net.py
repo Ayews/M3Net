@@ -92,25 +92,22 @@ class M3Net(nn.Module):
         flops += self.decoder.flops()
         return flops
 
-from thop import profile
+#from thop import profile
 if __name__ == '__main__':
     # Test
-    model = M3Net(embed_dim=384,dim=64,img_size=224,method='M3Net-T')
+    model = M3Net(embed_dim=384,dim=96,img_size=224,method='M3Net-R')
     model.cuda()
     
     f = torch.randn((1,3,224,224))
     x = model(f.cuda())
     for m in x:
         print(m.shape)
-    '''
+    
     import torch
     from ptflops import get_model_complexity_info
 
     with torch.cuda.device(0):
-       net = M3Net()
-       #ICON-S and ICON-P: (3, 384, 384), Others: (3, 352, 352)
-       macs, params = get_model_complexity_info(net, (3, 224, 224), as_strings=True,
-                                           print_per_layer_stat=True, verbose=True)
-       print('{:<30}  {:<8}'.format('Computational complexity: ', macs))
-       print('{:<30}  {:<8}'.format('Number of parameters: ', params))
-    '''
+       macs, params = get_model_complexity_info(model, (3, 224, 224), as_strings=True, print_per_layer_stat=True, verbose=True)
+       print('{:<30}  {:<8}'.format('macs: ', macs))
+       print('{:<30}  {:<8}'.format('parameters: ', params))
+    
