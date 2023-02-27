@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from Models.swin import SwinTransformer
-from Models.icon.resnet_encoder import ResNet
+from Models.resnet import ResNet
 from Models.t2t_vit import T2t_vit_t_14
 from multistage_fusion import decoder
 from multilevel_interaction import MultilevelInteractionBlock

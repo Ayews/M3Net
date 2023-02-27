@@ -90,7 +90,7 @@ def fit(model, train_dl, epochs=[100,20], lr=1e-4):
             loss = train_one_epoch(epoch,epochs[st],model,opt,train_dl)
             fh = open(save_dir, 'a')
             if(epoch == 0):
-                fh.write('Step: ' + str(st+1) + ', currelt lr: ' + str(lr) + '\n')
+                fh.write('Step: ' + str(st+1) + ', current lr: ' + str(lr) + '\n')
             fh.write(str(epoch+1) + ' epoch_loss: ' + str(loss) + '\n')
             fh.close()
         lr = lr/5
