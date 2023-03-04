@@ -119,9 +119,9 @@ def training(args):
         model.encoder.load_state_dict(torch.load('/pretrained_model/T2T_ViTt_14.pth.tar')['state_dict_ema'])
     print('Pre-trained weight loaded.')
 
-    train_dataset = get_loader('DUTS/DUTS-TR', args.data_root, 224, mode='train')
-    train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=8, shuffle = True, 
-                                               pin_memory=True,num_workers = 4
+    train_dataset = get_loader(args.trainset, args.data_root, 224, mode='train')
+    train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=4, shuffle = True, 
+                                               pin_memory=True,num_workers = 2
                                                )
     
     model.cuda()

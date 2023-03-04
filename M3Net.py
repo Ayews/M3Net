@@ -95,7 +95,7 @@ class M3Net(nn.Module):
 #from thop import profile
 if __name__ == '__main__':
     # Test
-    model = M3Net(embed_dim=384,dim=96,img_size=224,method='M3Net-R')
+    model = M3Net(embed_dim=384,dim=96,img_size=224,method='M3Net-S')
     model.cuda()
     
     f = torch.randn((1,3,224,224))

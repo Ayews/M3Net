@@ -302,7 +302,7 @@ class MixedAttentionBlock(nn.Module):
         return flops
     
 class SE(nn.Module):
-    def __init__(self, dim, r):
+    def __init__(self, dim, r=8):
         super(SE, self).__init__()
         self.se = nn.Sequential(
             nn.Linear(dim,dim//r),
@@ -327,11 +327,13 @@ class GCT(nn.Module):
         self.eps = eps
 
     def forward(self, x):
+        B,L,C = x.shape
+        x = x.transpose(1,2).reshape(B,C,(int)((L+1.0)**0.5),(int)((L+1.0)**0.5))
         embedding = (x.pow(2).sum((2,3), keepdim=True) + self.eps).pow(0.5) * self.alpha
         norm = self.gamma / (embedding.pow(2).mean(dim=1, keepdim=True) + self.eps).pow(0.5)
         gate = 1. + torch.tanh(embedding * norm + self.beta)
 
-        return x * gate
+        return (x * gate).reshape(B,C,-1).transpose(1,2)
 
 class ICE(nn.Module):
     def __init__(self, num_channels=64, ratio=8):
@@ -349,9 +351,11 @@ class ICE(nn.Module):
         )
 
     def forward(self, x):
+        B,L,C = x.shape
+        x = x.transpose(1,2).reshape(B,C,(int)((L+1.0)**0.5),(int)((L+1.0)**0.5))
         x = F.relu(self.bn_cross(self.conv_cross(x))) #[B, C, H, W]
         context = (x.pow(2).sum((2,3), keepdim=True) + self.eps).pow(0.5) # [B, C, 1, 1]
         channel_add_term = self.channel_add_conv(context)
 
-        return x * channel_add_term
+        return (x * channel_add_term).reshape(B,C,-1).transpose(1,2)
     
