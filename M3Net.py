@@ -106,8 +106,7 @@ if __name__ == '__main__':
     import torch
     from ptflops import get_model_complexity_info
 
-    with torch.cuda.device(0):
-       macs, params = get_model_complexity_info(model, (3, 224, 224), as_strings=True, print_per_layer_stat=True, verbose=True)
-       print('{:<30}  {:<8}'.format('macs: ', macs))
-       print('{:<30}  {:<8}'.format('parameters: ', params))
+    macs, params = get_model_complexity_info(model, (3, 224, 224), as_strings=True, print_per_layer_stat=True, verbose=True)
+    print('{:<30}  {:<8}'.format('macs: ', macs))
+    print('{:<30}  {:<8}'.format('parameters: ', params))
     

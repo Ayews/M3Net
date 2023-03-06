@@ -3,6 +3,7 @@ import torch.nn.functional as F
 from tqdm import tqdm
 from M3Net import M3Net
 from dataloader import get_loader
+import os
 # IoU Loss
 def iou_loss(pred, mask):
     pred  = torch.sigmoid(pred)
@@ -128,5 +129,7 @@ def training(args):
     model.train()
     print('Starting train.')
     fit(model,train_dl,[args.step1epochs,args.step2epochs],args.lr)
+    if not os.path.exists(args.save_model):
+        os.makedirs(args.save_model)
     torch.save(model.state_dict(), args.save_model+args.method+'.pth')
-    print('Saved at '+args.save_model+args.method+'.pth.')
+    print('Saved as '+args.save_model+args.method+'.pth.')
