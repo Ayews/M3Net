@@ -120,7 +120,7 @@ def training(args):
     print('Pre-trained weight loaded.')
 
     train_dataset = get_loader(args.trainset, args.data_root, 224, mode='train')
-    train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=4, shuffle = True, 
+    train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=8, shuffle = True, 
                                                pin_memory=True,num_workers = 2
                                                )
     

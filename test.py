@@ -87,6 +87,7 @@ def save_p(size,outputs,image_w,image_h,image_path,dataset_setname,save_path):
         output_si.save(os.path.join(save_test_path, filename + '.png'))
 
 def testing(args):
+    print('Starting test.')
     model = M3Net(embed_dim=384,dim=96,img_size=224,method=args.method)
     model.cuda()
     model.load_state_dict(torch.load(args.save_model+args.method+'.pth'))

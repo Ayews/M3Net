@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 from timm.models.layers import DropPath
 from Models.modules import MixedAttentionBlock
-from Models.modules import SE,GCT,ICE
 class decoder(nn.Module):
     r""" Multistage decoder. 
     
@@ -136,7 +135,6 @@ class MixedAttention(nn.Module):
         self.img_size = img_size
         self.in_dim = in_dim
         self.dim = dim
-        self.ce = SE(in_dim)
         self.norm1 = nn.LayerNorm(in_dim)
         self.mlp1 = nn.Sequential(
             nn.Linear(in_dim, dim),
@@ -155,7 +153,7 @@ class MixedAttention(nn.Module):
         self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
 
     def forward(self,fea):
-        fea = self.mlp1(self.norm1(self.ce(fea)))
+        fea = self.mlp1(self.norm1(fea))
         for blk in self.blocks:
             fea = blk(fea)
         fea = self.drop_path(self.mlp2(self.norm2(fea)))

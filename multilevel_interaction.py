@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 from timm.models.layers import DropPath
 from Models.modules import CrossAttention
-from Models.modules import SE,GCT,ICE
 class MultilevelInteractionBlock(nn.Module):
     r""" Multilevel Interaction Block. 
     
@@ -28,7 +27,6 @@ class MultilevelInteractionBlock(nn.Module):
 
         self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
 
-        self.ce = SE(dim)
         self.norm = nn.LayerNorm(dim)
         self.mlp = nn.Sequential(
             nn.Linear(dim, dim*mlp_ratio),
@@ -37,7 +35,6 @@ class MultilevelInteractionBlock(nn.Module):
         )
 
     def forward(self,fea,fea_1,fea_2=None):
-        fea = self.ce(fea)
         fea = self.norm0(fea)
         fea_1 = self.norm1(fea_1)
         fea_1 = self.interact1(fea,fea_1)
