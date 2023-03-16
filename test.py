@@ -24,13 +24,7 @@ def get_pred_dir(model, data_root = '/home/yy/datasets/', save_path = 'preds/',m
     test_paths = methods.split('+')
     for dataset_setname in test_paths:
         #print('get '+dataset_setname)
-        if dataset_setname == 'DUTS':
-            img_root = dataset_setname + '/DUTS-TE'
-        elif dataset_setname == 'DUTS-TR':
-            img_root = 'DUTS/'+dataset_setname
-        elif dataset_setname == 'MSRA10K':
-            img_root = dataset_setname + '_Imgs_GT'
-        else: img_root = dataset_setname + ''
+        img_root = dataset_setname + ''
         test_dataset = get_loader(img_root, data_root, 224, mode='test')
         test_loader = torch.utils.data.DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False, num_workers=1)
 

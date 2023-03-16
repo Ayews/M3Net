@@ -11,13 +11,16 @@ def load_list(dataset_name, data_root):
     images = []
     labels = []
 
-    img_root = data_root + dataset_name + '/imgs/'
-    img_files = os.listdir(img_root)
+    datasets = dataset_name.split('+')
 
-    for img in img_files:
+    for dataset in datasets:
+        img_root = data_root + '/' + dataset+ '/imgs/'
+        img_files = os.listdir(img_root)
 
-        images.append(img_root + img[:-4]+'.jpg')
-        labels.append(img_root.replace('/imgs/', '/gt/') + img[:-4]+'.png')
+        for img in img_files:
+
+            images.append(img_root + img[:-4]+'.jpg')
+            labels.append(img_root.replace('/imgs/', '/gt/') + img[:-4]+'.png')
 
     return images, labels
 

@@ -16,13 +16,13 @@ if __name__ == "__main__":
     parser.add_argument('--batch_size', default=8, type=int, help='batch_size')
     parser.add_argument('--step1epochs', default=100, type=int, help='train epochs for the step 1')
     parser.add_argument('--step2epochs', default=20, type=int, help='train epochs for the step 2')
-    parser.add_argument('--trainset', default='DUTS/DUTS-TR', type=str, help='Trainging set')
+    parser.add_argument('--trainset', default='DUTS-TR+HRSOD-TR', type=str, help='Trainging set')
     parser.add_argument('--save_model', default='savepth/', type=str, help='save model path')
 
     # test
     parser.add_argument('--test', default=False, type=bool, help='Test or not')
     parser.add_argument('--save_test', default='preds/', type=str, help='save saliency maps path')
-    parser.add_argument('--test_methods', type=str, default='DUTS+DUT-O+ECSSD+HKU-IS+PASCAL-S+SOD')
+    parser.add_argument('--test_methods', type=str, default='DUTS-TE+DUT-O+ECSSD+HKU-IS+PASCAL-S+SOD')
 
     args = parser.parse_args()
 
