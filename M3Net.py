@@ -25,7 +25,7 @@ class M3Net(nn.Module):
             self.encoder = SwinTransformer(img_size=img_size, 
                                             embed_dim=dim,
                                             depths=[2,2,18,2],
-                                            num_heads=[3,6,12,24],
+                                            num_heads=[4,8,16,32],
                                             window_size=7)
             self.interact1 = MultilevelInteractionBlock(dim=dim*4,dim1=dim*8,embed_dim=embed_dim,num_heads=4,mlp_ratio=3)
             self.interact2 = MultilevelInteractionBlock(dim=dim*2,dim1=dim*4,dim2=dim*8,embed_dim=embed_dim,num_heads=2,mlp_ratio=3)
@@ -95,7 +95,7 @@ class M3Net(nn.Module):
 #from thop import profile
 if __name__ == '__main__':
     # Test
-    model = M3Net(embed_dim=384,dim=96,img_size=224,method='M3Net-S')
+    model = M3Net(embed_dim=512,dim=128,img_size=224,method='M3Net-S')
     model.cuda()
     
     f = torch.randn((1,3,224,224))

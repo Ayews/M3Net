@@ -13,7 +13,7 @@ from dataloader import get_loader
 from torch.autograd import Variable
 from torchvision import transforms
 import torch.nn.functional as F
-import transforms as trans
+#import transforms as trans
 #from vst_token import ImageDepthNet
 #from icon import ICON
 from tqdm import tqdm
@@ -41,9 +41,9 @@ def get_pred_dir(model, data_root = '/home/yy/datasets/', save_path = 'preds/',m
 
             output_s = torch.sigmoid(mask_1_1)
 
-            transform = trans.Compose([
+            transform = transforms.Compose([
                 transforms.ToPILImage(),
-                trans.Scale((image_w, image_h))
+                transforms.Resize((image_h, image_w))
             ])
             #output_s = output_s.data.cpu().squeeze(0)
             thread = threading.Thread(target = save_p,args = (output_s.shape[0],output_s,image_w,image_h,image_path,dataset_setname,save_path))
@@ -62,10 +62,10 @@ def get_pred_dir(model, data_root = '/home/yy/datasets/', save_path = 'preds/',m
         '''
 
 def save_p(size,outputs,image_w,image_h,image_path,dataset_setname,save_path):
-    transform = trans.Compose([
-                transforms.ToPILImage(),
-                trans.Scale((image_w, image_h))
-            ])
+    transform = transforms.Compose([
+        transforms.ToPILImage(),
+        transforms.Resize((image_h, image_w))
+    ])
     for ii in range(0,size):
 
         output_si = outputs[ii]
@@ -82,9 +82,9 @@ def save_p(size,outputs,image_w,image_h,image_path,dataset_setname,save_path):
 
 def testing(args):
     print('Starting test.')
-    model = M3Net(embed_dim=384,dim=96,img_size=224,method=args.method)
+    model = M3Net(embed_dim=512,dim=128,img_size=224,method=args.method)
     model.cuda()
-    model.load_state_dict(torch.load(args.save_model+args.method+'.pth'))
+    model.load_state_dict(torch.load(args.save_model+args.method+'_b-enhance.pth'))
     print('Loaded from '+args.save_model+args.method+'.pth.')
     model.eval()
     get_pred_dir(model,data_root=args.data_root,save_path=args.save_test,methods=args.test_methods)

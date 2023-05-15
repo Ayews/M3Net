@@ -4,6 +4,7 @@ from tqdm import tqdm
 from M3Net import M3Net
 from dataloader import get_loader
 import os
+from data.dataloader import RGB_Dataset
 # IoU Loss
 def iou_loss(pred, mask):
     pred  = torch.sigmoid(pred)
@@ -52,17 +53,21 @@ def train_one_epoch(epoch,epochs,model,opt,train_dl):
     for i, data_batch in enumerate(progress_bar):
 
         l = l+1
-
-        images, label, label_1_16, label_1_8, label_1_4 = data_batch
+        images = data_batch['image']
+        label = data_batch['gt']
+        H,W = [224,224]
         images, label = images.cuda(non_blocking=True), label.cuda(non_blocking=True)
-        label_1_16, label_1_8, label_1_4 = label_1_16.cuda(), label_1_8.cuda(), label_1_4.cuda()
 
-        out2, out3, out4, out5 = model(images)
+        mask_1_16, mask_1_8, mask_1_4,mask_1_1 = model(images)
         
-        loss4  = F.binary_cross_entropy_with_logits(out2, label_1_16) + iou_loss(out2, label_1_16)
-        loss3  = F.binary_cross_entropy_with_logits(out3, label_1_8) + iou_loss(out3, label_1_8)
-        loss2  = F.binary_cross_entropy_with_logits(out4, label_1_4) + iou_loss(out4, label_1_4)
-        loss1  = F.binary_cross_entropy_with_logits(out5, label) + iou_loss(out5, label)
+        mask_1_16 = F.interpolate(mask_1_16,(H,W),mode='bilinear')
+        mask_1_8 = F.interpolate(mask_1_8,(H,W),mode='bilinear')
+        mask_1_4 = F.interpolate(mask_1_4,(H,W),mode='bilinear')        
+
+        loss4 = F.binary_cross_entropy_with_logits(mask_1_16, label) + iou_loss(mask_1_16, label)
+        loss3 = F.binary_cross_entropy_with_logits(mask_1_8, label) + iou_loss(mask_1_8, label)
+        loss2 = F.binary_cross_entropy_with_logits(mask_1_4, label) + iou_loss(mask_1_4, label)
+        loss1 = F.binary_cross_entropy_with_logits(mask_1_1, label) + iou_loss(mask_1_1, label)
 
         loss = loss_weights[0] * loss1 + loss_weights[1] * loss2 + loss_weights[2] * loss3 + loss_weights[3] * loss4
 
@@ -81,7 +86,7 @@ def train_one_epoch(epoch,epochs,model,opt,train_dl):
         
 def fit(model, train_dl, epochs=[100,20], lr=1e-4):
     step = len(epochs)
-    save_dir = './loss.txt'
+    save_dir = './loss1.txt'
     for st in range(step):
         opt = get_opt(lr,model)
         print('Starting train step {}.'.format(st+1))
@@ -110,8 +115,8 @@ def get_opt(lr,model):
 
 def training(args):
     if args.method == 'M3Net-S':
-        model = M3Net(embed_dim=384,dim=96,img_size=224,method=args.method)
-        model.encoder.load_state_dict(torch.load('./pretrained_model/swin_small_patch4_window7_224.pth')['model'])
+        model = M3Net(embed_dim=512,dim=128,img_size=224,method=args.method)
+        model.encoder.load_state_dict(torch.load('/home/yy/pretrained_model/swin_base_patch4_window12_224_22k.pth', map_location='cpu')['model'], strict=False)
     elif args.method == 'M3Net-R':
         model = M3Net(embed_dim=384,dim=96,img_size=224,method=args.method)
         model.encoder.load_state_dict(torch.load('./pretrained_model/ResNet50.pth'))
@@ -120,8 +125,8 @@ def training(args):
         model.encoder.load_state_dict(torch.load('/pretrained_model/T2T_ViTt_14.pth.tar')['state_dict_ema'])
     print('Pre-trained weight loaded.')
 
-    train_dataset = get_loader(args.trainset, args.data_root, 224, mode='train')
-    train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=8, shuffle = True, 
+    train_dataset = RGB_Dataset(root=args.data_root, sets=['DUTS-TR'],img_size=args.img_size,mode='train')
+    train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=4, shuffle = True, 
                                                pin_memory=True,num_workers = 2
                                                )
     
