@@ -54,11 +54,11 @@ class M3Net(nn.Module):
             feature_dims=[dim,dim,embed_dim]
 
         elif method == 'M3Net-E':
-            self.encoder = EfficientNet.from_name(f'efficientnet-b2')
-            self.proj1 = nn.Conv2d(24,dim,1)
-            self.proj2 = nn.Conv2d(48,dim*2,1)
-            self.proj3 = nn.Conv2d(120,dim*4,1)
-            self.proj4 = nn.Conv2d(352,dim*8,1)
+            self.encoder = EfficientNet.from_name(f'efficientnet-b7')
+            self.proj1 = nn.Conv2d(48,dim,1)
+            self.proj2 = nn.Conv2d(80,dim*2,1)
+            self.proj3 = nn.Conv2d(224,dim*4,1)
+            self.proj4 = nn.Conv2d(640,dim*8,1)
 
             self.interact1 = MultilevelInteractionBlock(dim=dim*4,dim1=dim*8,embed_dim=embed_dim,num_heads=4,mlp_ratio=3)
             self.interact2 = MultilevelInteractionBlock(dim=dim*2,dim1=dim*4,dim2=dim*8,embed_dim=embed_dim,num_heads=2,mlp_ratio=3)
