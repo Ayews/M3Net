@@ -3,8 +3,10 @@ import torch.nn as nn
 from Models.swin import SwinTransformer
 from Models.resnet import ResNet
 from Models.t2t_vit import T2t_vit_t_14
+from Models.EfficientNet import EfficientNet
 from multistage_fusion import decoder
 from multilevel_interaction import MultilevelInteractionBlock
+
 class M3Net(nn.Module):
     r""" Multilevel, Mixed and Multistage Attention Network for Salient Object Detection. 
     
@@ -51,7 +53,17 @@ class M3Net(nn.Module):
             self.interact3 = MultilevelInteractionBlock(dim=dim,dim1=dim,dim2=embed_dim,embed_dim=embed_dim,num_heads=1,mlp_ratio=3)
             feature_dims=[dim,dim,embed_dim]
 
+        elif method == 'M3Net-E':
+            self.encoder = EfficientNet.from_name(f'efficientnet-b2')
+            self.proj1 = nn.Conv2d(24,dim,1)
+            self.proj2 = nn.Conv2d(48,dim*2,1)
+            self.proj3 = nn.Conv2d(120,dim*4,1)
+            self.proj4 = nn.Conv2d(352,dim*8,1)
 
+            self.interact1 = MultilevelInteractionBlock(dim=dim*4,dim1=dim*8,embed_dim=embed_dim,num_heads=4,mlp_ratio=3)
+            self.interact2 = MultilevelInteractionBlock(dim=dim*2,dim1=dim*4,dim2=dim*8,embed_dim=embed_dim,num_heads=2,mlp_ratio=3)
+            self.interact3 = MultilevelInteractionBlock(dim=dim,dim1=dim*2,dim2=dim*4,embed_dim=embed_dim,num_heads=1,mlp_ratio=3)
+            feature_dims=[dim,dim*2,dim*4]
         self.decoder = decoder(embed_dim=embed_dim,dims=feature_dims,img_size=img_size,mlp_ratio=1)
 
     def forward(self,x):
@@ -75,7 +87,16 @@ class M3Net(nn.Module):
             fea_1_4,fea_1_8,fea_1_16_ = fea
             fea_1_8_ = self.interact2(fea_1_8,fea_1_16_)
             fea_1_4_ = self.interact3(fea_1_4,fea_1_8_,fea_1_16_)
-
+        elif self.method == 'M3Net-E':
+            fea_1_4,fea_1_8,fea_1_16,fea_1_32 = fea
+            B,_,_,_ = fea_1_4.shape
+            fea_1_4 = self.proj1(fea_1_4).reshape(B,self.dim,-1).transpose(1,2)
+            fea_1_8 = self.proj2(fea_1_8).reshape(B,self.dim*2,-1).transpose(1,2)
+            fea_1_16 = self.proj3(fea_1_16).reshape(B,self.dim*4,-1).transpose(1,2)
+            fea_1_32 = self.proj4(fea_1_32).reshape(B,self.dim*8,-1).transpose(1,2)
+            fea_1_16_ = self.interact1(fea_1_16,fea_1_32)
+            fea_1_8_ = self.interact2(fea_1_8,fea_1_16_,fea_1_32)
+            fea_1_4_ = self.interact3(fea_1_4,fea_1_8_,fea_1_16_)
         mask = self.decoder([fea_1_16_,fea_1_8_,fea_1_4_])
         return mask
 
@@ -95,7 +116,7 @@ class M3Net(nn.Module):
 #from thop import profile
 if __name__ == '__main__':
     # Test
-    model = M3Net(embed_dim=512,dim=128,img_size=224,method='M3Net-S')
+    model = M3Net(embed_dim=384,dim=64,img_size=224,method='M3Net-E')
     model.cuda()
     
     f = torch.randn((1,3,224,224))

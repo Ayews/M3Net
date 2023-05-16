@@ -25,7 +25,7 @@ def get_pred_dir(model, data_root = '/home/yy/datasets/', save_path = 'preds/',m
     for dataset_setname in test_paths:
         #print('get '+dataset_setname)
         img_root = dataset_setname + ''
-        test_dataset = get_loader(img_root, data_root, 224, mode='test')
+        test_dataset = get_loader(img_root, data_root, 352, mode='test')
         test_loader = torch.utils.data.DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False, num_workers=1)
 
         progress_bar = tqdm(test_loader, desc=dataset_setname,ncols=140)
@@ -82,9 +82,9 @@ def save_p(size,outputs,image_w,image_h,image_path,dataset_setname,save_path):
 
 def testing(args):
     print('Starting test.')
-    model = M3Net(embed_dim=512,dim=128,img_size=224,method=args.method)
+    model = M3Net(embed_dim=512,dim=128,img_size=352,method=args.method)
     model.cuda()
-    model.load_state_dict(torch.load(args.save_model+args.method+'_b-enhance.pth'))
+    model.load_state_dict(torch.load(args.save_model+args.method+'_352.pth'))
     print('Loaded from '+args.save_model+args.method+'.pth.')
     model.eval()
     get_pred_dir(model,data_root=args.data_root,save_path=args.save_test,methods=args.test_methods)
