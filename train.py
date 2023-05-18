@@ -55,7 +55,7 @@ def train_one_epoch(epoch,epochs,model,opt,train_dl):
         l = l+1
         images = data_batch['image']
         label = data_batch['gt']
-        H,W = [224,224]
+        H,W = [352,352]
         images, label = images.cuda(non_blocking=True), label.cuda(non_blocking=True)
 
         mask_1_16, mask_1_8, mask_1_4,mask_1_1 = model(images)
@@ -124,12 +124,12 @@ def training(args):
         model = M3Net(embed_dim=384,dim=64,img_size=224,method=args.method)
         model.encoder.load_state_dict(torch.load('/pretrained_model/T2T_ViTt_14.pth.tar')['state_dict_ema'])
     elif args.method == 'M3Net-E':
-        model = M3Net(embed_dim=384,dim=64,img_size=224,method=args.method)
+        model = M3Net(embed_dim=384,dim=64,img_size=352,method=args.method)
         model.encoder.load_state_dict(torch.load('adv-efficientnet-b7-4652b6dd.pth'), strict=False)
     print('Pre-trained weight loaded.')
 
     train_dataset = RGB_Dataset(root=args.data_root, sets=['DUTS-TR'],img_size=args.img_size,mode='train')
-    train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=8, shuffle = True, 
+    train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=4, shuffle = True, 
                                                pin_memory=True,num_workers = 2
                                                )
     
@@ -139,5 +139,5 @@ def training(args):
     fit(model,train_dl,[args.step1epochs,args.step2epochs],args.lr)
     if not os.path.exists(args.save_model):
         os.makedirs(args.save_model)
-    torch.save(model.state_dict(), args.save_model+args.method+'_7_224.pth')
+    torch.save(model.state_dict(), args.save_model+args.method+'_7_352.pth')
     print('Saved as '+args.save_model+args.method+'.pth.')

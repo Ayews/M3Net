@@ -271,7 +271,7 @@ class MixedAttentionBlock(nn.Module):
         self.dim = dim
         self.mlp_ratio = mlp_ratio
 
-        self.windowatt = WindowAttentionBlock(dim=dim,input_resolution=img_size,num_heads=num_heads,window_size=7, shift_size=0,
+        self.windowatt = WindowAttentionBlock(dim=dim,input_resolution=img_size,num_heads=num_heads,window_size=11, shift_size=0,
                  mlp_ratio=mlp_ratio, qkv_bias=True, qk_scale=None, drop=0., attn_drop=0., drop_path=0.,
                  act_layer=nn.GELU, norm_layer=nn.LayerNorm,
                  fused_window_process=False)
