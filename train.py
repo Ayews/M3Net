@@ -2,10 +2,10 @@ import torch
 import torch.nn.functional as F
 from tqdm import tqdm
 from M3Net import M3Net
-from dataloader import get_loader
 import os
 from data.dataloader import RGB_Dataset
-# IoU Loss
+
+# L_IoU
 def iou_loss(pred, mask):
     pred  = torch.sigmoid(pred)
     inter = (pred*mask).sum(dim=(2,3))
@@ -13,6 +13,7 @@ def iou_loss(pred, mask):
     iou  = 1-(inter+1)/(union-inter+1)
     return iou.mean()
 
+# L_STR
 def structure_loss(pred, mask, weight=None):
     def generate_smoothed_gt(gts):
         epsilon = 0.001
@@ -33,13 +34,14 @@ def structure_loss(pred, mask, weight=None):
     wiou = 1 - (inter + 1) / (union - inter + 1)
     return (wbce + wiou).mean()
 
+# L_wBCE
 def wbce(pred,mask):
     weit = 1 + 5 * torch.abs(F.avg_pool2d(mask, kernel_size=15, stride=1, padding=7) - mask)
     wbce = F.binary_cross_entropy_with_logits(pred, mask, reduce='none')
     wbce = (weit * wbce).sum(dim=(2, 3)) / weit.sum(dim=(2, 3))
     return wbce.mean()
 
-def train_one_epoch(epoch,epochs,model,opt,train_dl):
+def train_one_epoch(epoch,epochs,model,opt,train_dl,train_size):
     epoch_total_loss = 0
     epoch_loss1 = 0
     epoch_loss2 = 0
@@ -55,7 +57,7 @@ def train_one_epoch(epoch,epochs,model,opt,train_dl):
         l = l+1
         images = data_batch['image']
         label = data_batch['gt']
-        H,W = [352,352]
+        H,W = train_size
         images, label = images.cuda(non_blocking=True), label.cuda(non_blocking=True)
 
         mask_1_16, mask_1_8, mask_1_4,mask_1_1 = model(images)
@@ -82,18 +84,18 @@ def train_one_epoch(epoch,epochs,model,opt,train_dl):
         epoch_loss4 += loss4.cpu().data.item()
 
         progress_bar.set_postfix(loss=f'{epoch_loss1/(i+1):.3f}')
+
     return epoch_loss1/l
         
-def fit(model, train_dl, epochs=[100,20], lr=1e-4):
+def fit(model, train_dl, epochs=[100,20], lr=1e-4,train_size = 384,save_dir = './loss.txt'):
     step = len(epochs)
-    save_dir = './loss1.txt'
     for st in range(step):
         opt = get_opt(lr,model)
         print('Starting train step {}.'.format(st+1))
         print('lr: '+str(lr))
         for epoch in range(epochs[st]):
-            #model.train()
-            loss = train_one_epoch(epoch,epochs[st],model,opt,train_dl)
+            loss = train_one_epoch(epoch,epochs[st],model,opt,train_dl,[train_size,train_size])
+            # Record
             fh = open(save_dir, 'a')
             if(epoch == 0):
                 fh.write('Step: ' + str(st+1) + ', current lr: ' + str(lr) + '\n')
@@ -105,6 +107,7 @@ def get_opt(lr,model):
     
     base_params = [params for name, params in model.named_parameters() if ("encoder" in name)]
     other_params = [params for name, params in model.named_parameters() if ("encoder" not in name)]
+    # 1/10 lr for parameters in backbone
     params = [{'params': base_params, 'lr': lr*0.1},
           {'params': other_params, 'lr': lr}
          ]
@@ -118,8 +121,8 @@ def training(args):
         model = M3Net(embed_dim=512,dim=128,img_size=224,method=args.method)
         model.encoder.load_state_dict(torch.load('/home/yy/pretrained_model/swin_base_patch4_window12_224_22k.pth', map_location='cpu')['model'], strict=False)
     elif args.method == 'M3Net-R':
-        model = M3Net(embed_dim=384,dim=96,img_size=224,method=args.method)
-        model.encoder.load_state_dict(torch.load('./pretrained_model/ResNet50.pth'))
+        model = M3Net(embed_dim=384,dim=64,img_size=args.img_size,method=args.method)
+        model.encoder.load_state_dict(torch.load('/home/yy/pretrained_model/resnet50.pth'), strict=False)
     elif args.method == 'M3Net-T':
         model = M3Net(embed_dim=384,dim=64,img_size=224,method=args.method)
         model.encoder.load_state_dict(torch.load('/pretrained_model/T2T_ViTt_14.pth.tar')['state_dict_ema'])
@@ -136,8 +139,8 @@ def training(args):
     model.cuda()
     model.train()
     print('Starting train.')
-    fit(model,train_dl,[args.step1epochs,args.step2epochs],args.lr)
+    fit(model,train_dl,[args.step1epochs,args.step2epochs],args.lr,args.img_size,args.record)
     if not os.path.exists(args.save_model):
         os.makedirs(args.save_model)
-    torch.save(model.state_dict(), args.save_model+args.method+'_7_352.pth')
+    torch.save(model.state_dict(), args.save_model+args.method+'_resnet50_352.pth')
     print('Saved as '+args.save_model+args.method+'.pth.')

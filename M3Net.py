@@ -25,10 +25,15 @@ class M3Net(nn.Module):
         self.dim = dim
         if method == 'M3Net-S':
             self.encoder = SwinTransformer(img_size=img_size, 
-                                            embed_dim=dim,
+                                            embed_dim=128,
                                             depths=[2,2,18,2],
                                             num_heads=[4,8,16,32],
                                             window_size=7)
+            self.proj1 = nn.Linear(128,dim)
+            self.proj2 = nn.Linear(256,dim*2)
+            self.proj3 = nn.Linear(512,dim*4)
+            self.proj4 = nn.Linear(1024,dim*8)
+
             self.interact1 = MultilevelInteractionBlock(dim=dim*4,dim1=dim*8,embed_dim=embed_dim,num_heads=4,mlp_ratio=3)
             self.interact2 = MultilevelInteractionBlock(dim=dim*2,dim1=dim*4,dim2=dim*8,embed_dim=embed_dim,num_heads=2,mlp_ratio=3)
             self.interact3 = MultilevelInteractionBlock(dim=dim,dim1=dim*2,dim2=dim*4,embed_dim=embed_dim,num_heads=1,mlp_ratio=3)
@@ -70,6 +75,10 @@ class M3Net(nn.Module):
         fea = self.encoder(x)
         if self.method == 'M3Net-S':
             fea_1_4,fea_1_8,fea_1_16,fea_1_32 = fea
+            fea_1_4 = self.proj1(fea_1_4)
+            fea_1_8 = self.proj2(fea_1_8)
+            fea_1_16 = self.proj3(fea_1_16)
+            fea_1_32 = self.proj4(fea_1_32)
             fea_1_16_ = self.interact1(fea_1_16,fea_1_32)
             fea_1_8_ = self.interact2(fea_1_8,fea_1_16_,fea_1_32)
             fea_1_4_ = self.interact3(fea_1_4,fea_1_8_,fea_1_16_)
@@ -116,10 +125,10 @@ class M3Net(nn.Module):
 #from thop import profile
 if __name__ == '__main__':
     # Test
-    model = M3Net(embed_dim=384,dim=64,img_size=224,method='M3Net-E')
+    model = M3Net(embed_dim=384,dim=64,img_size=352,method='M3Net-R')
     model.cuda()
     
-    f = torch.randn((1,3,224,224))
+    f = torch.randn((1,3,352,352))
     x = model(f.cuda())
     for m in x:
         print(m.shape)
@@ -127,7 +136,7 @@ if __name__ == '__main__':
     import torch
     from ptflops import get_model_complexity_info
 
-    macs, params = get_model_complexity_info(model, (3, 224, 224), as_strings=True, print_per_layer_stat=True, verbose=True)
+    macs, params = get_model_complexity_info(model, (3, 352, 352), as_strings=True, print_per_layer_stat=True, verbose=True)
     print('{:<30}  {:<8}'.format('macs: ', macs))
     print('{:<30}  {:<8}'.format('parameters: ', params))
     
