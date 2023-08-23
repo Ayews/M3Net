@@ -14,21 +14,19 @@ class decoder(nn.Module):
     def __init__(self,embed_dim=384,dims=[96,192,384],img_size=224,mlp_ratio=3):
         super(decoder, self).__init__()
         self.img_size = img_size
-        #self.dim = dim
+        self.dims = dims
         self.embed_dim = embed_dim
         self.fusion1 = multiscale_fusion(in_dim=dims[2],f_dim=dims[1],kernel_size=(3,3),img_size=(img_size//8,img_size//8),stride=(2,2),padding=(1,1))
         self.fusion2 = multiscale_fusion(in_dim=dims[1],f_dim=dims[0],kernel_size=(3,3),img_size=(img_size//4,img_size//4),stride=(2,2),padding=(1,1))
         self.fusion3 = multiscale_fusion(in_dim=dims[0],f_dim=dims[0],kernel_size=(7,7),img_size=(img_size//1,img_size//1),stride=(4,4),padding=(2,2),fuse=False)
 
-        self.mixatt1 = MixedAttention(in_dim=dims[1],dim=embed_dim,img_size=(img_size//8,img_size//8),num_heads=1,mlp_ratio=mlp_ratio,depth=2)
-        self.mixatt2 = MixedAttention(in_dim=dims[0],dim=embed_dim,img_size=(img_size//4,img_size//4),num_heads=1,mlp_ratio=mlp_ratio,depth=2)
+        self.mixatt1 = MixedAttention(in_dim=dims[1],dim=embed_dim,img_size=(img_size//8,img_size//8),window_size=(img_size//32),num_heads=1,mlp_ratio=mlp_ratio,depth=2)
+        self.mixatt2 = MixedAttention(in_dim=dims[0],dim=embed_dim,img_size=(img_size//4,img_size//4),window_size=(img_size//32),num_heads=1,mlp_ratio=mlp_ratio,depth=2)
 
         self.proj1 = nn.Linear(dims[2],1)
         self.proj2 = nn.Linear(dims[1],1)
         self.proj3 = nn.Linear(dims[0],1)
         self.proj4 = nn.Linear(dims[0],1)
-
-
 
     def forward(self,f):
         fea_1_16,fea_1_8,fea_1_4 = f #fea_1_16:1/16
@@ -56,13 +54,12 @@ class decoder(nn.Module):
         flops += self.mixatt1.flops()
         flops += self.mixatt2.flops()
         
-        flops += self.img_size//16*self.img_size//16 * self.dim * 4
-        flops += self.img_size//8*self.img_size//8 * self.dim * 2
-        flops += self.img_size//4*self.img_size//4 * self.dim * 1
-        flops += self.img_size//1*self.img_size//1 * self.dim * 1
+        flops += self.img_size//16*self.img_size//16 * self.dims[2]
+        flops += self.img_size//8*self.img_size//8 * self.dims[1]
+        flops += self.img_size//4*self.img_size//4 * self.dims[0]
+        flops += self.img_size//1*self.img_size//1 * self.dims[0]
 
         return flops
-
 
 class multiscale_fusion(nn.Module):
     r""" Upsampling and feature fusion. 
@@ -106,6 +103,7 @@ class multiscale_fusion(nn.Module):
         else:
             fea = self.proj(fea)
         return fea
+    
     def flops(self):
         N = self.img_size[0]*self.img_size[1]
         flops = 0
@@ -129,7 +127,7 @@ class MixedAttention(nn.Module):
         mlp_ratio (float): Ratio of mlp hidden dim to embedding dim.
         depth (int): The number of MAB stacked.
     """
-    def __init__(self,in_dim,dim,img_size,num_heads=1,mlp_ratio=4,depth=2,drop_path = 0.):
+    def __init__(self,in_dim,dim,img_size,window_size,num_heads=1,mlp_ratio=4,depth=2,drop_path = 0.):
         super(MixedAttention, self).__init__()
 
         self.img_size = img_size
@@ -142,7 +140,7 @@ class MixedAttention(nn.Module):
             nn.Linear(dim, dim),
         )
         self.blocks = nn.ModuleList([
-            MixedAttentionBlock(dim=dim,img_size=img_size,num_heads=num_heads,mlp_ratio=mlp_ratio)
+            MixedAttentionBlock(dim=dim,img_size=img_size,window_size = window_size,num_heads=num_heads,mlp_ratio=mlp_ratio)
             for i in range(depth)])
         self.norm2 = nn.LayerNorm(dim)
         self.mlp2 = nn.Sequential(
@@ -158,6 +156,7 @@ class MixedAttention(nn.Module):
             fea = blk(fea)
         fea = self.drop_path(self.mlp2(self.norm2(fea)))
         return fea
+    
     def flops(self):
         flops = 0
         N = self.img_size[0]*self.img_size[1]
@@ -166,7 +165,6 @@ class MixedAttention(nn.Module):
         #mlp1
         flops += N*self.in_dim*self.dim
         flops += N*self.dim*self.dim
-
         #blks
         for blk in self.blocks:
             flops += blk.flops()

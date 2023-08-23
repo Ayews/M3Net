@@ -21,6 +21,7 @@ class Mlp(nn.Module):
         x = self.fc2(x)
         x = self.drop(x)
         return x
+    
     def flops(self,N):
         return N*(self.in_features+self.out_features)*self.hidden_features
 
@@ -104,6 +105,7 @@ class CrossAttention(nn.Module):
         fea = self.proj_drop(fea)
 
         return fea
+    
     def flops(self,N1,N2):
         flops = 0
         #q
@@ -136,6 +138,7 @@ class Block(nn.Module):
         x = self.drop_path(self.attn(self.norm1(x)))
         #x = x + self.drop_path(self.mlp(self.norm2(x)))
         return x
+    
     def flops(self,N):
         flops = 0
         #att
@@ -264,14 +267,14 @@ class WindowAttentionBlock(nn.Module):
         return flops
 
 class MixedAttentionBlock(nn.Module):
-    def __init__(self,dim,img_size,num_heads=1,mlp_ratio=3,drop_path = 0.):
+    def __init__(self,dim,img_size,window_size,num_heads=1,mlp_ratio=3,drop_path = 0.):
         super(MixedAttentionBlock, self).__init__()
 
         self.img_size = img_size
         self.dim = dim
         self.mlp_ratio = mlp_ratio
 
-        self.windowatt = WindowAttentionBlock(dim=dim,input_resolution=img_size,num_heads=num_heads,window_size=11, shift_size=0,
+        self.windowatt = WindowAttentionBlock(dim=dim,input_resolution=img_size,num_heads=num_heads,window_size=window_size, shift_size=0,
                  mlp_ratio=mlp_ratio, qkv_bias=True, qk_scale=None, drop=0., attn_drop=0., drop_path=0.,
                  act_layer=nn.GELU, norm_layer=nn.LayerNorm,
                  fused_window_process=False)
@@ -292,6 +295,7 @@ class MixedAttentionBlock(nn.Module):
         x = x + att1 + att2
         x = x + self.drop_path(self.mlp(self.norm(x)))
         return x
+    
     def flops(self):
         N = self.img_size[0]*self.img_size[1]
         flops = 0

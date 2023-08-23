@@ -28,7 +28,7 @@ class M3Net(nn.Module):
                                             embed_dim=128,
                                             depths=[2,2,18,2],
                                             num_heads=[4,8,16,32],
-                                            window_size=7)
+                                            window_size=img_size//32)
             self.proj1 = nn.Linear(128,dim)
             self.proj2 = nn.Linear(256,dim*2)
             self.proj3 = nn.Linear(512,dim*4)
@@ -69,6 +69,7 @@ class M3Net(nn.Module):
             self.interact2 = MultilevelInteractionBlock(dim=dim*2,dim1=dim*4,dim2=dim*8,embed_dim=embed_dim,num_heads=2,mlp_ratio=3)
             self.interact3 = MultilevelInteractionBlock(dim=dim,dim1=dim*2,dim2=dim*4,embed_dim=embed_dim,num_heads=1,mlp_ratio=3)
             feature_dims=[dim,dim*2,dim*4]
+
         self.decoder = decoder(embed_dim=embed_dim,dims=feature_dims,img_size=img_size,mlp_ratio=1)
 
     def forward(self,x):

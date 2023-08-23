@@ -1,3 +1,4 @@
+import datetime
 import torch
 import torch.nn.functional as F
 from tqdm import tqdm
@@ -95,18 +96,30 @@ def fit(model, train_dl, epochs=[100,20], lr=1e-4,train_size = 384,save_dir = '.
         print('lr: '+str(lr))
         for epoch in range(epochs[st]):
             loss = train_one_epoch(epoch,epochs[st],model,opt,train_dl,[train_size,train_size])
+
             # Record
             fh = open(save_dir, 'a')
-            if(epoch == 0):
+            if epoch == 0:
+                fh.write('\n'+str(datetime.datetime.now())+'\n')
+                fh.write('Start record.\n')
                 fh.write('Step: ' + str(st+1) + ', current lr: ' + str(lr) + '\n')
             fh.write(str(epoch+1) + ' epoch_loss: ' + str(loss) + '\n')
+            if (epoch+1)%10 == 0:
+                if not os.path.exists('savepth/tmp/'):
+                    os.makedirs('savepth/tmp/')
+                torch.save(model.state_dict(), 'savepth/tmp/'+str(st+1)+'_'+str(epoch+1)+'.pth')
+            if epoch+1 == epochs:
+                fh.write(str(datetime.datetime.now())+'\n')
+                fh.write('End record.\n')
             fh.close()
+
         lr = lr/5
 
 def get_opt(lr,model):
     
     base_params = [params for name, params in model.named_parameters() if ("encoder" in name)]
     other_params = [params for name, params in model.named_parameters() if ("encoder" not in name)]
+
     # 1/10 lr for parameters in backbone
     params = [{'params': base_params, 'lr': lr*0.1},
           {'params': other_params, 'lr': lr}
@@ -118,8 +131,8 @@ def get_opt(lr,model):
 
 def training(args):
     if args.method == 'M3Net-S':
-        model = M3Net(embed_dim=512,dim=128,img_size=224,method=args.method)
-        model.encoder.load_state_dict(torch.load('/home/yy/pretrained_model/swin_base_patch4_window12_224_22k.pth', map_location='cpu')['model'], strict=False)
+        model = M3Net(embed_dim=512,dim=64,img_size=args.img_size,method=args.method)
+        model.encoder.load_state_dict(torch.load('/home/yy/pretrained_model/swin_base_patch4_window12_384_22k.pth', map_location='cpu')['model'], strict=False)
     elif args.method == 'M3Net-R':
         model = M3Net(embed_dim=384,dim=64,img_size=args.img_size,method=args.method)
         model.encoder.load_state_dict(torch.load('/home/yy/pretrained_model/resnet50.pth'), strict=False)
@@ -142,5 +155,5 @@ def training(args):
     fit(model,train_dl,[args.step1epochs,args.step2epochs],args.lr,args.img_size,args.record)
     if not os.path.exists(args.save_model):
         os.makedirs(args.save_model)
-    torch.save(model.state_dict(), args.save_model+args.method+'_resnet50_352.pth')
+    torch.save(model.state_dict(), args.save_model+args.method+'.pth')
     print('Saved as '+args.save_model+args.method+'.pth.')
