@@ -1,0 +1,33 @@
+{
+    "M3Net": {
+      "PASCAL-S": {
+        "path": "./preds/PASCAL-S",
+        "suffix": ".png"
+      },
+      "ECSSD": {
+        "path": "./preds/ECSSD",
+        "suffix": ".png"
+      },
+      "HKU-IS": {
+        "path": "./preds/HKU-IS",
+        "suffix": ".png"
+      },
+      "DUT-O": {
+        "path": "./preds/DUT-O",
+        "suffix": ".png"
+      },
+      "DUTS-TE": {
+        "path": "./preds/DUTS-TE",
+        "suffix": ".png"
+      },
+      "SOD": {
+        "path": "./preds/SOD",
+        "suffix": ".png"
+      },
+      "DUTS-TR": {
+        "path": "./preds/DUTS-TR",
+        "suffix": ".png"
+      }
+    }
+  }
+  

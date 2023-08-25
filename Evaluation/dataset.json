@@ -1,0 +1,68 @@
+{
+    "DUT-O": {
+      "root": "./datasets/",
+      "image": {
+        "path": "./datasets/DUT-O/imgs",
+        "suffix": ".jpg"
+      },
+      "mask": {
+        "path": "./datasets/DUT-O/gt",
+        "suffix": ".png"
+      }
+    },
+    "ECSSD": {
+      "root": "./datasets/",
+      "image": {
+        "path": "./datasets/ECSSD/imgs",
+        "suffix": ".jpg"
+      },
+      "mask": {
+        "path": "./datasets/ECSSD/gt",
+        "suffix": ".png"
+      }
+    },
+    "PASCAL-S": {
+      "root": "./datasets/PASCAL-S",
+      "image": {
+        "path": "./datasets/PASCAL-S/imgs",
+        "suffix": ".jpg"
+      },
+      "mask": {
+        "path": "./datasets/PASCAL-S/gt",
+        "suffix": ".png"
+      }
+    },
+    "DUTS-TE": {
+      "root": "./datasets/DUTS-TE",
+      "image": {
+        "path": "./datasets/DUTS-TE/imgs",
+        "suffix": ".jpg"
+      },
+      "mask": {
+        "path": "./datasets/DUTS-TE/gt",
+        "suffix": ".png"
+      }
+    },
+    "HKU-IS": {
+      "root": "./datasets/HKU-IS",
+      "image": {
+        "path": "./datasets/HKU-IS/imgs",
+        "suffix": ".png"
+      },
+      "mask": {
+        "path": "./datasets/HKU-IS/gt",
+        "suffix": ".png"
+      } 
+    },
+    "SOD": {
+      "root": "./datasets/SOD",
+      "image": {
+        "path": "./datasets/SOD/imgs",
+        "suffix": ".jpg"
+      },
+      "mask": {
+        "path": "./datasets/SOD/gt",
+        "suffix": ".png"
+      } 
+    }
+  }
