@@ -1,10 +1,10 @@
 # M<sup>3</sup>Net: Multilevel, Mixed and Multistage Attention Network for Salient Object Detection
-source code for our M<sup>3</sup>Net. 
+Source code of 'M<sup>3</sup>Net: Multilevel, Mixed and Multistage Attention Network for Salient Object Detection'. 
 ![](./figures/Overview.png)
 
 ## Environment
 
-Python 3.9.13 and Pytorch 1.11.0. Details can be found in `requirements.txt`
+Python 3.9.13 and Pytorch 1.11.0. Details can be found in `requirements.txt`. 
 
 ## Data Preparation
 All datasets used can be downloaded at [here](https://pan.baidu.com/s/1fw4uB6W8psX7roBOgbbXyA) [arrr].
@@ -34,24 +34,29 @@ Your `/datasets` folder should look like this:
 ## Training and Testing
 1. Download the pretrained backbone weights and put it into `pretrained_model/` folder. [ResNet](https://pan.baidu.com/s/1JBEa06CT4hYh8hR7uuJ_3A) [uxcz], [SwinTransformer](https://github.com/microsoft/Swin-Transformer), [T2T-ViT](https://github.com/yitu-opensource/T2T-ViT), [EfficientNet](https://github.com/lukemelas/EfficientNet-PyTorch) are currently supported. 
 
-2. Run `python train_test.py --train True --test True --record='record.txt'` for training and testing. The predictions will be in `preds/` folder and the training records will be in `record.txt` file.
-We will provided our trained models soon. 
+2. Run `python train_test.py --train True --test True --record='record.txt'` for training and testing. The predictions will be in `preds/` folder and the training records will be in `record.txt` file. 
 
 ## Evaluation
-Pre-calculated saliency maps: [M3Net-R](https://pan.baidu.com/s/1q4Sp_M-Ph58OsCX1f_c0Ow) [uqsr], [M3Net-S](https://pan.baidu.com/s/1m1jF69FaavK4vbPp3B6AcQ) [6jyh]\
-Pre-trained weights of the M<sup>3</sup>Net will be released soon. 
+Pre-calculated saliency maps: [M<sup>3</sup>Net-R](https://pan.baidu.com/s/1q4Sp_M-Ph58OsCX1f_c0Ow) [uqsr], [M<sup>3</sup>Net-S](https://pan.baidu.com/s/1m1jF69FaavK4vbPp3B6AcQ) [6jyh]\
+Pre-trained weights: [M<sup>3</sup>Net-R](https://pan.baidu.com/s/15vG8N8y-BFv60O_j3C_Uhw) [m789], [M<sup>3</sup>Net-S](https://pan.baidu.com/s/1ZEXR1QD2AMWQfBhxp5f8VA) [4wnw]
 
-For *PR curve* and *F curve*, we use the code provided by this repo: [[BASNet, CVPR-2019]](https://github.com/xuebinqin/Binary-Segmentation-Evaluation-Tool)\
-For *MAE*, *F measure*, *E score* and *S score*, we use the code provided by this repo: [[PySODMetrics]](https://github.com/lartpang/PySODMetrics)
+For *PR curve* and *F curve*, we use the code provided by this repo: [[BASNet, CVPR-2019]](https://github.com/xuebinqin/Binary-Segmentation-Evaluation-Tool). \
+For *MAE*, *Weighted F measure*, *E score* and *S score*, we use the code provided by this repo: [[PySODMetrics]](https://github.com/lartpang/PySODMetrics). 
+
+For more information about evaluation, please refer to `Evaluation/Guidance.md`. 
 
 ## Evaluation Results
 ### Quantitative Evaluation
 ![](./figures/Quantitative_comparison.png)
+
+### Precision-recall and F-measure curves
+![](./figures/PR&Fm_curves.png)
+
 ### Visual Comparison
 ![](./figures/Visual_comparison.png)
 
 ## Acknowledgement
-Our code is inspired by [VST](https://github.com/nnizhang/VST) and [MiNet](https://github.com/lartpang/MINet). Thanks for their excellent works.
+Our idea is inspired by [VST](https://github.com/nnizhang/VST) and [MiNet](https://github.com/lartpang/MINet). Thanks for their excellent works. 
 We also thank [lartpang](https://github.com/lartpang/PySODMetrics) for providing the efficient evaluation tool. 
 
 <!--
