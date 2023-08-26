@@ -145,7 +145,7 @@ def training(args):
     print('Pre-trained weight loaded.')
 
     train_dataset = RGB_Dataset(root=args.data_root, sets=['DUTS-TR'],img_size=args.img_size,mode='train')
-    train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=4, shuffle = True, 
+    train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle = True, 
                                                pin_memory=True,num_workers = 2
                                                )
     
