@@ -132,16 +132,16 @@ def get_opt(lr,model):
 def training(args):
     if args.method == 'M3Net-S':
         model = M3Net(embed_dim=512,dim=64,img_size=args.img_size,method=args.method)
-        model.encoder.load_state_dict(torch.load('/home/yy/pretrained_model/swin_base_patch4_window12_384_22k.pth', map_location='cpu')['model'], strict=False)
+        model.encoder.load_state_dict(torch.load(args.pretrained_model+'swin_base_patch4_window12_384_22k.pth', map_location='cpu')['model'], strict=False)
     elif args.method == 'M3Net-R':
         model = M3Net(embed_dim=384,dim=64,img_size=args.img_size,method=args.method)
-        model.encoder.load_state_dict(torch.load('/home/yy/pretrained_model/resnet50.pth'), strict=False)
+        model.encoder.load_state_dict(torch.load(args.pretrained_model+'resnet50.pth'), strict=False)
     elif args.method == 'M3Net-T':
-        model = M3Net(embed_dim=384,dim=64,img_size=224,method=args.method)
-        model.encoder.load_state_dict(torch.load('/pretrained_model/T2T_ViTt_14.pth.tar')['state_dict_ema'])
+        model = M3Net(embed_dim=384,dim=64,img_size=args.img_size,method=args.method)
+        model.encoder.load_state_dict(torch.load(args.pretrained_model+'T2T_ViTt_14.pth.tar')['state_dict_ema'])
     elif args.method == 'M3Net-E':
-        model = M3Net(embed_dim=384,dim=64,img_size=352,method=args.method)
-        model.encoder.load_state_dict(torch.load('adv-efficientnet-b7-4652b6dd.pth'), strict=False)
+        model = M3Net(embed_dim=384,dim=64,img_size=args.img_size,method=args.method)
+        model.encoder.load_state_dict(torch.load(args.pretrained_model+'adv-efficientnet-b7-4652b6dd.pth'), strict=False)
     print('Pre-trained weight loaded.')
 
     train_dataset = RGB_Dataset(root=args.data_root, sets=['DUTS-TR'],img_size=args.img_size,mode='train')
