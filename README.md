@@ -48,6 +48,8 @@ For more information about evaluation, please refer to `Evaluation/Guidance.md`.
 ## Evaluation Results
 ### Quantitative Evaluation
 ![](./figures/Quantitative_comparison.png)
+![](./figures/Quantitative_comparison2.png)
+![](./figures/Quantitative_comparison3.png)
 
 ### Precision-recall and F-measure curves
 ![](./figures/PR&Fm_curves.png)
