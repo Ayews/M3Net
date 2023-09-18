@@ -1,4 +1,10 @@
 # M<sup>3</sup>Net: Multilevel, Mixed and Multistage Attention Network for Salient Object Detection
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/m-3-net-multilevel-mixed-and-multistage/salient-object-detection-on-dut-omron)](https://paperswithcode.com/sota/salient-object-detection-on-dut-omron?p=m-3-net-multilevel-mixed-and-multistage)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/m-3-net-multilevel-mixed-and-multistage/salient-object-detection-on-ecssd)](https://paperswithcode.com/sota/salient-object-detection-on-ecssd?p=m-3-net-multilevel-mixed-and-multistage)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/m-3-net-multilevel-mixed-and-multistage/salient-object-detection-on-hku-is)](https://paperswithcode.com/sota/salient-object-detection-on-hku-is?p=m-3-net-multilevel-mixed-and-multistage)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/m-3-net-multilevel-mixed-and-multistage/salient-object-detection-on-duts-te)](https://paperswithcode.com/sota/salient-object-detection-on-duts-te?p=m-3-net-multilevel-mixed-and-multistage)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/m-3-net-multilevel-mixed-and-multistage/salient-object-detection-on-pascal-s)](https://paperswithcode.com/sota/salient-object-detection-on-pascal-s?p=m-3-net-multilevel-mixed-and-multistage)
+
 Source code of 'M<sup>3</sup>Net: Multilevel, Mixed and Multistage Attention Network for Salient Object Detection'. 
 ![](./figures/Overview.png)
 
@@ -61,10 +67,17 @@ For more information about evaluation, please refer to `Evaluation/Guidance.md`.
 Our idea is inspired by [VST](https://github.com/nnizhang/VST) and [MiNet](https://github.com/lartpang/MINet). Thanks for their excellent works. 
 We also thank [lartpang](https://github.com/lartpang/PySODMetrics) for providing the efficient evaluation tool. 
 
-<!--
+
 ## Citation
 If you think our work is helpful, please cite 
 ```
-
+@misc{yuan2023m3net,
+      title={M$^3$Net: Multilevel, Mixed and Multistage Attention Network for Salient Object Detection}, 
+      author={Yao Yuan and Pan Gao and XiaoYang Tan},
+      year={2023},
+      eprint={2309.08365},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}
 ```
--->
+
