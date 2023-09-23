@@ -1,3 +1,10 @@
+# --------------------------------------------------------
+# InSPyReNet
+# Copyright (c) 2021 Taehun Kim
+# Licensed under The MIT License 
+# https://github.com/plemeri/InSPyReNet
+# --------------------------------------------------------
+
 import os
 import cv2
 import sys

@@ -13,7 +13,7 @@ Source code of 'M<sup>3</sup>Net: Multilevel, Mixed and Multistage Attention Net
 Python 3.9.13 and Pytorch 1.11.0. Details can be found in `requirements.txt`. 
 
 ## Data Preparation
-All datasets used can be downloaded at [here](https://pan.baidu.com/s/1fw4uB6W8psX7roBOgbbXyA) [arrr].
+All datasets used can be downloaded at [here](https://pan.baidu.com/s/1fw4uB6W8psX7roBOgbbXyA) [arrr]. 
 
 ### Training set
 We use the training set of [DUTS](http://saliencydetection.net/duts/) to train our M<sup>3</sup>Net. 
@@ -65,8 +65,7 @@ For more information about evaluation, please refer to `Evaluation/Guidance.md`.
 
 ## Acknowledgement
 Our idea is inspired by [VST](https://github.com/nnizhang/VST) and [MiNet](https://github.com/lartpang/MINet). Thanks for their excellent works. 
-We also thank [lartpang](https://github.com/lartpang/PySODMetrics) for providing the efficient evaluation tool. 
-
+We also appreciate the data loading and enhancement code provided by [plemeri](https://github.com/plemeri), as well as the efficient evaluation tool provided by [lartpang](https://github.com/lartpang/PySODMetrics). 
 
 ## Citation
 If you think our work is helpful, please cite 
