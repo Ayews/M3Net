@@ -5,7 +5,8 @@
 [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/m-3-net-multilevel-mixed-and-multistage/salient-object-detection-on-duts-te)](https://paperswithcode.com/sota/salient-object-detection-on-duts-te?p=m-3-net-multilevel-mixed-and-multistage)
 [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/m-3-net-multilevel-mixed-and-multistage/salient-object-detection-on-pascal-s)](https://paperswithcode.com/sota/salient-object-detection-on-pascal-s?p=m-3-net-multilevel-mixed-and-multistage)
 
-Source code of 'M<sup>3</sup>Net: Multilevel, Mixed and Multistage Attention Network for Salient Object Detection'. 
+Source code of 'M<sup>3</sup>Net: Multilevel, Mixed and Multistage Attention Network for Salient Object Detection'. [paper link](https://arxiv.org/abs/2309.08365)
+
 ![](./figures/Overview.png)
 
 ## Environment
@@ -19,7 +20,7 @@ All datasets used can be downloaded at [here](https://pan.baidu.com/s/1fw4uB6W8p
 We use the training set of [DUTS](http://saliencydetection.net/duts/) to train our M<sup>3</sup>Net. 
 
 ### Testing Set
-We use the testing set of [DUTS](http://saliencydetection.net/duts/), [ECSSD](http://www.cse.cuhk.edu.hk/leojia/projects/hsaliency/dataset.html), [HKU-IS](https://i.cs.hku.hk/~gbli/deep_saliency.html), [PASCAL-S](http://cbi.gatech.edu/salobj/), [DUT-O](http://saliencydetection.net/dut-omron/), and [SOD](http://elderlab.yorku.ca/SOD.) to test our M<sup>3</sup>Net. After Downloading, put them into `/datasets` folder.
+We use the testing set of [DUTS](http://saliencydetection.net/duts/), [ECSSD](http://www.cse.cuhk.edu.hk/leojia/projects/hsaliency/dataset.html), [HKU-IS](https://i.cs.hku.hk/~gbli/deep_saliency.html), [PASCAL-S](http://cbi.gatech.edu/salobj/), [DUT-O](http://saliencydetection.net/dut-omron/), and [SOD](https://www.elderlab.yorku.ca/resources/salient-objects-dataset-sod/) to test our M<sup>3</sup>Net. After Downloading, put them into `/datasets` folder.
 
 Your `/datasets` folder should look like this:
 
@@ -79,4 +80,3 @@ If you think our work is helpful, please cite
       primaryClass={cs.CV}
 }
 ```
-
