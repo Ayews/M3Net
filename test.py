@@ -44,7 +44,10 @@ def get_pred_dir(model, data_root = '/home/yy/datasets/', save_path = 'preds/',i
 
 def testing(args):
     print('Starting test.')
-    model = M3Net(embed_dim=384,dim=64,img_size=args.img_size,method=args.method)
+    if args.method == 'M3Net-S' and args.img_size == 384:
+        model = M3Net(embed_dim=512,dim=64,img_size=args.img_size,method=args.method)
+    else:
+        model = M3Net(embed_dim=384,dim=64,img_size=args.img_size,method=args.method)
     model.cuda()
     model.load_state_dict(torch.load(args.save_model+args.method+'.pth'))
     print('Loaded from '+args.save_model+args.method+'.pth.')
